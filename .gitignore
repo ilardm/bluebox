@@ -2,5 +2,7 @@
 *.swp
 *.o
 
+build/
+
 misc/*.txt
 *.wav
