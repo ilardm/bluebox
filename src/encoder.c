@@ -86,10 +86,22 @@ EXIT_STATUS bb_encode( const char* _number, const char* _outfname )
           );
 #endif /* =================================================================== */
 
-    FILE* ofd = fopen( outfname, "w" );
+    SF_INFO opt = { 0 };
+    opt.samplerate  = DTMF_SAMPLE_RATE;
+    opt.channels    = 1;
+    opt.format      =   SF_FORMAT_WAV
+                      | SF_FORMAT_FLOAT
+                      ;
+
+    SNDFILE* ofd = sf_open( outfname
+                            , SFM_WRITE
+                            , &opt
+                          );
     if ( !ofd )
     {
-        fprintf( stderr, "unable to open output file\n" );
+        fprintf( stderr, "unable to open output file: %s\n"
+                , sf_strerror( ofd )
+                );
 
         return ES_BAD;
     }
@@ -118,21 +130,30 @@ EXIT_STATUS bb_encode( const char* _number, const char* _outfname )
                        );
                 break;
             }
+        }
 
+        if ( !DTMF_KEY_SIGNALS[ DTMF_KP_PAUSE ].filled )
+        {
             if ( bbe_fill_key_signal( DTMF_KP_PAUSE ) != ES_OK )
             {
                 fprintf( stderr, "unable to fill signal data for pause\n" );
                 break;
             }
-
-/*TODO: write pause*/
-/*TODO: write signal data*/
         }
+
+        sf_write_float(   ofd
+                        , (float*)(DTMF_KEY_SIGNALS[ DTMF_KP_PAUSE ].data)
+                        , DTMF_KEY_SIGNALS[ DTMF_KP_PAUSE ].datasz
+                      );
+        sf_write_float(   ofd
+                        , (float*)(DTMF_KEY_SIGNALS[ key ].data)
+                        , DTMF_KEY_SIGNALS[ key ].datasz
+                      );
     }
 
     bbe_free_key_signals();
     free( outfname );
-    fclose( ofd );
+    sf_close( ofd );
     return ES_OK;
 }
 

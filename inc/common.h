@@ -28,6 +28,8 @@
 
 #include    <math.h>
 
+#include    <sndfile.h>
+
 typedef enum EXIT_STATUS_ENUM
 {
       ES_OK
