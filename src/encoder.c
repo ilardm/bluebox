@@ -79,13 +79,6 @@ EXIT_STATUS bb_encode( const char* _number, const char* _outfname )
                );
     }
 
-#ifdef _DEBUG /* ============================================================ */
-    printf( "'%s' -> '%s'\n"
-            , _number
-            , outfname
-          );
-#endif /* =================================================================== */
-
     SF_INFO opt = { 0 };
     opt.samplerate  = DTMF_SAMPLE_RATE;
     opt.channels    = 1;
@@ -106,10 +99,21 @@ EXIT_STATUS bb_encode( const char* _number, const char* _outfname )
         return ES_BAD;
     }
 
+    printf( "encoding '%s' to '%s'\n"
+            , _number
+            , outfname
+          );
+
+    EXIT_STATUS es = ES_OK;
     /*run encoding*/
     for ( i = 0; i < strlen( _number ); i++ )
     {
         char c = _number[ i ];
+#ifdef _DEBUG /* ============================================================ */
+        printf( "processing '%c' key\n"
+                , c
+              );
+#endif /* =================================================================== */
         DTMF_KEYPAD key = dtmf_c2kp( c );
         if ( !dtmf_is_keypad_value( key ) )
         {
@@ -118,28 +122,58 @@ EXIT_STATUS bb_encode( const char* _number, const char* _outfname )
                     , i
                     , key
                    );
+
+            es = ES_BAD;
             break;
         }
 
         if ( !DTMF_KEY_SIGNALS[ key ].filled )
         {
+#ifdef _DEBUG /* ============================================================ */
+        printf( "generating '%c' key signal data\n"
+                , c
+              );
+#endif /* =================================================================== */
+
             if ( bbe_fill_key_signal( key ) != ES_OK )
             {
                 fprintf( stderr, "unable to fill signal data for key '%c'\n"
                         , c
                        );
+
+                es = ES_BAD;
                 break;
             }
         }
+#ifdef _DEBUG /* ============================================================ */
+        else
+        {
+            printf( "'%c' signal already cached\n"
+                    , c
+                  );
+        }
+#endif /* =================================================================== */
 
         if ( !DTMF_KEY_SIGNALS[ DTMF_KP_PAUSE ].filled )
         {
+#ifdef _DEBUG /* ============================================================ */
+        printf( "generating pause signal data\n" );
+#endif /* =================================================================== */
+
             if ( bbe_fill_key_signal( DTMF_KP_PAUSE ) != ES_OK )
             {
                 fprintf( stderr, "unable to fill signal data for pause\n" );
+
+                es = ES_BAD;
                 break;
             }
         }
+#ifdef _DEBUG /* ============================================================ */
+        else
+        {
+            printf( "pause signal already cached\n" );
+        }
+#endif /* =================================================================== */
 
         sf_write_float(   ofd
                         , (float*)(DTMF_KEY_SIGNALS[ DTMF_KP_PAUSE ].data)
@@ -154,7 +188,14 @@ EXIT_STATUS bb_encode( const char* _number, const char* _outfname )
     bbe_free_key_signals();
     free( outfname );
     sf_close( ofd );
-    return ES_OK;
+
+    printf( "encoding %s\n"
+            , ( es == ES_OK ?
+                "done" :
+                "failed"
+              )
+          );
+    return es;
 }
 
 EXIT_STATUS bbe_fill_key_signal( DTMF_KEYPAD _key )
