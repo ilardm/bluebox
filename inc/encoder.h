@@ -24,5 +24,6 @@
 
 EXIT_STATUS bb_encode( const char*, const char* );
 EXIT_STATUS bbe_fill_key_signal( DTMF_KEYPAD );
+void bbe_free_key_signals();
 
 #endif

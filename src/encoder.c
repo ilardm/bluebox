@@ -130,6 +130,7 @@ EXIT_STATUS bb_encode( const char* _number, const char* _outfname )
         }
     }
 
+    bbe_free_key_signals();
     free( outfname );
     fclose( ofd );
     return ES_OK;
@@ -142,9 +143,9 @@ EXIT_STATUS bbe_fill_key_signal( DTMF_KEYPAD _key )
         return ES_BADARG;
     }
 
-    DTMF_KEY_SIGNAL signal = DTMF_KEY_SIGNALS[ _key ];
+    DTMF_KEY_SIGNAL* signal = &( DTMF_KEY_SIGNALS[ _key ] );
 
-    if ( signal.filled )
+    if ( signal->filled )
     {
         return ES_OK;
     }
@@ -165,8 +166,8 @@ EXIT_STATUS bbe_fill_key_signal( DTMF_KEYPAD _key )
         return ES_BAD;
     }
 
-    signal.data = data;
-    signal.datasz = data_len;
+    signal->data = data;
+    signal->datasz = data_len;
 
     if ( _key != DTMF_KP_PAUSE )
     {
@@ -179,7 +180,25 @@ EXIT_STATUS bbe_fill_key_signal( DTMF_KEYPAD _key )
         }
     }
 
-    signal.filled = 1;
+    signal->filled = true;
 
     return ES_OK;
+}
+
+void bbe_free_key_signals()
+{
+    DTMF_KEYPAD k = DTMF_KP_1;
+    for ( k = DTMF_KP_1; k < DTMF_KP_COUNT; k++ )
+    {
+        DTMF_KEY_SIGNAL* signal = &( DTMF_KEY_SIGNALS[ k ] );
+
+        if (    signal->filled
+             && signal->data
+           )
+        {
+            free( signal->data );
+            signal->data = 0x00;
+            signal->filled = false;
+        }
+    }
 }

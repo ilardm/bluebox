@@ -102,7 +102,7 @@ static const DTMF_KEY_FREQ DTMF_KEYPAD_FREQ[ DTMF_KP_COUNT ] = {
 };
 
 typedef struct DTMF_KEY_SIGNAL_STRUCT {
-    char    filled;
+    BOOL    filled;
     void*   data;
     size_t  datasz;
 } DTMF_KEY_SIGNAL;
