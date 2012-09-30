@@ -19,6 +19,8 @@
 #ifndef DTMF_H
 #define DTMF_H
 
+#include    "common.h"
+
 static const char* DTMF_NUMBERS = "0123456789*#ABCD";
 
 // should be defines/enum/etc, not static const <type>
@@ -40,7 +42,7 @@ enum DTMF_CONSTANTS {
     , DTMF_SIGNAL_LENGTH_MIN    = 40 /* ms */
     , DTMF_PAUSE_LENGTH         = 50 /* ms */
     , DTMF_PAUSE_LENGTH_MIN     = 40 /* ms */
-    , DTMF_SAMPE_RATE           = 8 * 1000 /* Hz */
+    , DTMF_SAMPLE_RATE          = (8 * 1000) /* Hz */
 };
 
 typedef struct DTMF_KEY_FREQ_STRUCT {
@@ -69,8 +71,12 @@ typedef enum DTMF_KEYPAD_ENUM {
     , DTMF_KP_POUND
     , DTMF_KP_D
 
+    , DTMF_KP_PAUSE     /* not a real key - used for preallocated signal space */
     , DTMF_KP_COUNT
 } DTMF_KEYPAD;
+
+DTMF_KEYPAD dtmf_c2kp( const char );
+BOOL dtmf_is_keypad_value( const DTMF_KEYPAD );
 
 static const DTMF_KEY_FREQ DTMF_KEYPAD_FREQ[ DTMF_KP_COUNT ] = {
       { DTMF_X1_FREQ, DTMF_Y1_FREQ }
@@ -92,6 +98,15 @@ static const DTMF_KEY_FREQ DTMF_KEYPAD_FREQ[ DTMF_KP_COUNT ] = {
     , { DTMF_X2_FREQ, DTMF_Y4_FREQ }
     , { DTMF_X3_FREQ, DTMF_Y4_FREQ }
     , { DTMF_X4_FREQ, DTMF_Y4_FREQ }
+    , { 0, 0 }
 };
+
+typedef struct DTMF_KEY_SIGNAL_STRUCT {
+    char    filled;
+    void*   data;
+    size_t  datasz;
+} DTMF_KEY_SIGNAL;
+
+static DTMF_KEY_SIGNAL DTMF_KEY_SIGNALS[ DTMF_KP_COUNT ] = { { 0 } };
 
 #endif

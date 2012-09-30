@@ -35,4 +35,6 @@ typedef enum EXIT_STATUS_ENUM
     , ES_BAD
 } EXIT_STATUS;
 
+typedef enum BOOL_ENUM { false, true } BOOL;
+
 #endif

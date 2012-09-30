@@ -95,9 +95,91 @@ EXIT_STATUS bb_encode( const char* _number, const char* _outfname )
     }
 
     /*run encoding*/
-    /*TODO*/
+    for ( i = 0; i < strlen( _number ); i++ )
+    {
+        char c = _number[ i ];
+        DTMF_KEYPAD key = dtmf_c2kp( c );
+        if ( !dtmf_is_keypad_value( key ) )
+        {
+            fprintf( stderr, "'%c'(position %d) -> %d - in not keypad value\n"
+                    , c
+                    , i
+                    , key
+                   );
+            break;
+        }
+
+        if ( !DTMF_KEY_SIGNALS[ key ].filled )
+        {
+            if ( bbe_fill_key_signal( key ) != ES_OK )
+            {
+                fprintf( stderr, "unable to fill signal data for key '%c'\n"
+                        , c
+                       );
+                break;
+            }
+
+            if ( bbe_fill_key_signal( DTMF_KP_PAUSE ) != ES_OK )
+            {
+                fprintf( stderr, "unable to fill signal data for pause\n" );
+                break;
+            }
+
+/*TODO: write pause*/
+/*TODO: write signal data*/
+        }
+    }
 
     free( outfname );
     fclose( ofd );
+    return ES_OK;
+}
+
+EXIT_STATUS bbe_fill_key_signal( DTMF_KEYPAD _key )
+{
+    if ( _key == DTMF_KP_COUNT )
+    {
+        return ES_BADARG;
+    }
+
+    DTMF_KEY_SIGNAL signal = DTMF_KEY_SIGNALS[ _key ];
+
+    if ( signal.filled )
+    {
+        return ES_OK;
+    }
+
+    DTMF_KEY_FREQ key_freq = DTMF_KEYPAD_FREQ[ _key ];
+    float signal_len = ( _key == DTMF_KP_PAUSE ?
+                            DTMF_PAUSE_LENGTH :
+                            DTMF_SIGNAL_LENGTH
+                       );
+    size_t data_len = (signal_len * 1000) / (1.0 / DTMF_SAMPLE_RATE);
+
+    float* data = (float*)calloc( data_len, sizeof( float ) );
+    if ( !data )
+    {
+        fprintf( stderr, "unable to allocate (%u bytes) memory for signal data\n"
+                , data_len * sizeof( float )
+               );
+        return ES_BAD;
+    }
+
+    signal.data = data;
+    signal.datasz = data_len;
+
+    if ( _key != DTMF_KP_PAUSE )
+    {
+        size_t i = 0;
+        for ( i = 0; i < data_len; i++ )
+        {
+            data[ i ] = ( sinf( 2 * M_PI * key_freq.lo * ( i * (1/DTMF_SAMPLE_RATE) ) ) +
+                          sinf( 2 * M_PI * key_freq.hi * ( i * (1/DTMF_SAMPLE_RATE) ) )
+                        );
+        }
+    }
+
+    signal.filled = 1;
+
     return ES_OK;
 }

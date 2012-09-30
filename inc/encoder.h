@@ -20,7 +20,9 @@
 #define ENCODER_H
 
 #include    "common.h"
+#include    "dtmf.h"
 
 EXIT_STATUS bb_encode( const char*, const char* );
+EXIT_STATUS bbe_fill_key_signal( DTMF_KEYPAD );
 
 #endif
