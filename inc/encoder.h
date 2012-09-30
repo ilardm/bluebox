@@ -16,23 +16,11 @@
  *along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef COMMON_H
-#define COMMON_H
+#ifndef ENCODER_H
+#define ENCODER_H
 
-#include    <stdio.h>
+#include    "common.h"
 
-#include    <string.h>
-#include    <strings.h>
-#include    <memory.h>
-#include    <stdlib.h>
-
-#include    <math.h>
-
-typedef enum EXIT_STATUS_ENUM
-{
-      ES_OK
-    , ES_BADARG
-    , ES_BAD
-} EXIT_STATUS;
+EXIT_STATUS bb_encode( const char*, const char* );
 
 #endif

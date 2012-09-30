@@ -19,6 +19,7 @@
 #include    <stdio.h>
 
 #include    "main.h"
+#include    "encoder.h"
 
 int main( int argc, char** argv )
 {
@@ -89,6 +90,8 @@ int main( int argc, char** argv )
 #ifdef _DEBUG /* ============================================================ */
         printf( "run encoder\n" );
 #endif /* =================================================================== */
+
+        return bb_encode( argv[2], argv[3] );
     }
     else
     {
