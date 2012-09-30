@@ -174,8 +174,8 @@ EXIT_STATUS bbe_fill_key_signal( DTMF_KEYPAD _key )
         size_t i = 0;
         for ( i = 0; i < data_len; i++ )
         {
-            data[ i ] = ( sinf( 2 * M_PI * key_freq.lo * ( i * (1/DTMF_SAMPLE_RATE) ) ) +
-                          sinf( 2 * M_PI * key_freq.hi * ( i * (1/DTMF_SAMPLE_RATE) ) )
+            data[ i ] = ( sinf( 2 * M_PI * key_freq.lo * ( i * (1.0/DTMF_SAMPLE_RATE) ) ) +
+                          sinf( 2 * M_PI * key_freq.hi * ( i * (1.0/DTMF_SAMPLE_RATE) ) )
                         );
         }
     }
