@@ -154,12 +154,12 @@ EXIT_STATUS bbe_fill_key_signal( DTMF_KEYPAD _key )
                             DTMF_PAUSE_LENGTH :
                             DTMF_SIGNAL_LENGTH
                        );
-    size_t data_len = (signal_len * 1000) / (1.0 / DTMF_SAMPLE_RATE);
+    size_t data_len = (signal_len / 1000.0) / (1.0 / DTMF_SAMPLE_RATE);
 
     float* data = (float*)calloc( data_len, sizeof( float ) );
     if ( !data )
     {
-        fprintf( stderr, "unable to allocate (%u bytes) memory for signal data\n"
+        fprintf( stderr, "unable to allocate (%zu bytes) memory for signal data\n"
                 , data_len * sizeof( float )
                );
         return ES_BAD;
