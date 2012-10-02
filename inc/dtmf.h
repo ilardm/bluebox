@@ -43,6 +43,7 @@ enum DTMF_CONSTANTS {
     , DTMF_PAUSE_LENGTH         = 50 /* ms */
     , DTMF_PAUSE_LENGTH_MIN     = 40 /* ms */
     , DTMF_SAMPLE_RATE          = (8 * 1000) /* Hz */
+    , DTMF_READ_BLOCK_SIZE      = 256
 };
 
 typedef struct DTMF_KEY_FREQ_STRUCT {
