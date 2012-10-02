@@ -36,6 +36,7 @@ enum DTMF_CONSTANTS {
     , DTMF_Y2_FREQ = 770 /* Hz */
     , DTMF_Y3_FREQ = 852 /* Hz */
     , DTMF_Y4_FREQ = 941 /* Hz */
+    , DTMF_FREQ_COUNT = 8
 
     //signal-related constants
     , DTMF_SIGNAL_LENGTH        = 70 /* ms */

@@ -22,6 +22,20 @@
 #include    "common.h"
 #include    "dtmf.h"
 
+typedef struct GOERTZEL_DATA_STRUCT
+{
+    float freq;
+    float cfactor;
+
+    float sn1;
+    float sn2;
+    float sn;
+
+    float xk;
+} GOERTZEL_DATA;
+
 EXIT_STATUS bb_decode( const char* );
+EXIT_STATUS bbd_initialize_goertzel_data( GOERTZEL_DATA*, const float, const float);
+EXIT_STATUS bbd_goertzel( GOERTZEL_DATA*, const float );
 
 #endif
