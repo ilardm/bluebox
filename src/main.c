@@ -20,6 +20,7 @@
 
 #include    "main.h"
 #include    "encoder.h"
+#include    "decoder.h"
 
 int main( int argc, char** argv )
 {
@@ -76,6 +77,8 @@ int main( int argc, char** argv )
 #ifdef _DEBUG /* ============================================================ */
         printf( "run decoder\n" );
 #endif /* =================================================================== */
+
+        return bb_decode( argv[2] );
     }
     else if ( strncmp( argv[1], "-e", 2 ) == 0 )
     {
