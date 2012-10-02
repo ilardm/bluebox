@@ -16,27 +16,14 @@
  *along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef COMMON_H
-#define COMMON_H
+#ifndef ENCODER_H
+#define ENCODER_H
 
-#include    <stdio.h>
+#include    "common.h"
+#include    "dtmf.h"
 
-#include    <string.h>
-#include    <strings.h>
-#include    <memory.h>
-#include    <stdlib.h>
-
-#include    <math.h>
-
-#include    <sndfile.h>
-
-typedef enum EXIT_STATUS_ENUM
-{
-      ES_OK
-    , ES_BADARG
-    , ES_BAD
-} EXIT_STATUS;
-
-typedef enum BOOL_ENUM { false, true } BOOL;
+EXIT_STATUS bb_encode( const char*, const char* );
+EXIT_STATUS bbe_fill_key_signal( DTMF_KEYPAD );
+void bbe_free_key_signals();
 
 #endif
