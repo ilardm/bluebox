@@ -138,25 +138,25 @@ EXIT_STATUS bb_decode( const char* _infname )
     int ch = 0;
     while ( (readcount = sf_readf_float( ifd, block, blockcount )) > 0 )
     {
-#ifdef _DEBUG
-        printf( "read %lld samples\n"
-                , readcount
-              );
-#endif
+/*#ifdef _DEBUG*/
+/*        printf( "read %lld samples\n"*/
+/*                , readcount*/
+/*              );*/
+/*#endif*/
         for ( sample = 0; sample < readcount; sample++ )
         {
-#ifdef _DEBUG
-            printf( "%0.6f: ", tm );
-#endif
+/*#ifdef _DEBUG*/
+/*            printf( "%0.6f: ", tm );*/
+/*#endif*/
             for ( ch = 0; ch < opt.channels; ch++ )
             {
-#ifdef _DEBUG
-                printf( "ch[%d] = %2.6f%c"
-                        , ch
-                        , block[ sample * opt.channels + ch ]
-                        , (ch == opt.channels-1 ? '\n' : '\t')
-                      );
-#endif
+/*#ifdef _DEBUG*/
+/*                printf( "ch[%d] = %2.6f%c"*/
+/*                        , ch*/
+/*                        , block[ sample * opt.channels + ch ]*/
+/*                        , (ch == opt.channels-1 ? '\n' : '\t')*/
+/*                      );*/
+/*#endif*/
 /*TODO: run processing*/
 
                 /*
@@ -171,10 +171,10 @@ EXIT_STATUS bb_decode( const char* _infname )
                     GOERTZEL_DATA* data = &(gdata[ i + ch ]);
                     if ( bbd_goertzel( data, block[ sample * opt.channels + ch ] ) == ES_OK )
                     {
-                        printf( "Goertzel xk(%f hz) = %0.6f\n"
-                                , data->freq
-                                , data->xk
-                              );
+                        /*printf( "Goertzel xk(%f hz) = %0.6f\n"*/
+                        /*        , data->freq*/
+                        /*        , data->xk*/
+                        /*      );*/
 
 #ifdef _DEBUG
                         if (    ofd
