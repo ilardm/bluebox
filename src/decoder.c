@@ -262,12 +262,12 @@ EXIT_STATUS bbd_goertzel( GOERTZEL_DATA* _data, const float _sample )
         return ES_BADARG;
     }
 
+    _data->sn2 = _data->sn1;
+    _data->sn1 = _data->sn;
+
     _data->sn = _data->cfactor * _data->sn1 -
                 _data->sn2 +
                 _sample;
-
-    _data->sn2 = _data->sn1;
-    _data->sn1 = _data->sn;
 
     _data->xk = SQR(_data->sn1) -
                 _data->cfactor * _data->sn1 * _data->sn2 +
