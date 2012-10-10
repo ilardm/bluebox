@@ -109,6 +109,20 @@ EXIT_STATUS bb_decode( const char* _infname )
         return ES_BAD;
     }
 
+    /*allocate memory for wavefrom data on each channel*/
+    WAVEFORM_DATA* wfd = (WAVEFORM_DATA*)calloc( opt.channels, sizeof(WAVEFORM_DATA) );
+    if ( !wfd )
+    {
+        fprintf( stderr, "unable to allocate memory(%zu bytes) for waveform data\n"
+                , (opt.channels * sizeof(WAVEFORM_DATA))
+               );
+
+        free( block );
+        free( gdata );
+        sf_close( ifd );
+        return ES_BAD;
+    }
+
     for ( i = 0; i < DTMF_FREQ_COUNT; i++ )
     {
         int ch = 0;
@@ -136,7 +150,8 @@ EXIT_STATUS bb_decode( const char* _infname )
     size_t tm_sample = 0;
     size_t samples_in_10ms = (size_t)(floorf((10 / 1000.0) / (1.0/opt.samplerate)));
     sf_count_t readcount = 0;
-    int sample = 0;
+    int samplen = 0;
+    float samplev = 0;
     int ch = 0;
     while ( (readcount = sf_readf_float( ifd, block, blockcount )) > 0 )
     {
@@ -145,8 +160,9 @@ EXIT_STATUS bb_decode( const char* _infname )
 /*                , readcount*/
 /*              );*/
 /*#endif*/
-        for ( sample = 0; sample < readcount; sample++ )
+        for ( samplen = 0; samplen < readcount; samplen++ )
         {
+            samplev = block[ samplen * opt.channels + ch ];
 /*#ifdef _DEBUG*/
 /*            printf( "%0.6f: ", tm );*/
 /*#endif*/
@@ -169,12 +185,11 @@ EXIT_STATUS bb_decode( const char* _infname )
                  */
 
                 int pause_cnt = 0;
-                /*BOOL update_xk = ((int)(floorf( (int)(tm*1000) )) % 10 == 0);*/
-                BOOL update_xk = ( tm_sample % samples_in_10ms == 0 );
+                BOOL update_wf = ( tm_sample % samples_in_10ms == 0 );
                 for ( i = 0; i < DTMF_FREQ_COUNT; i++ )
                 {
                     GOERTZEL_DATA* data = &(gdata[ i + ch ]);
-                    if ( bbd_goertzel( data, block[ sample * opt.channels + ch ], update_xk ) == ES_OK )
+                    if ( bbd_goertzel( data, samplev, false ) == ES_OK )
                     {
                         /*printf( "Goertzel xk(%f hz) = %0.6f\n"*/
                         /*        , data->freq*/
@@ -201,18 +216,6 @@ EXIT_STATUS bb_decode( const char* _infname )
                                    );
                         }
 #endif
-                        /*if ( (int)(floorf( tm*1000 )) % 10 == 0 )*/
-                        if ( update_xk )
-                        {
-                            printf( "%0.6f (%f)\t"
-                                    , tm
-                                    , data->freq
-                                  );
-                            if ( bbd_is_pause( data ) == ES_OK )
-                            {
-                                pause_cnt++;
-                            }
-                        }
                     }
 #ifdef _DEBUG
                     else
@@ -221,6 +224,33 @@ EXIT_STATUS bb_decode( const char* _infname )
                     }
 #endif
                 }
+
+                /*if ( (int)(floorf( tm*1000 )) % 10 == 0 )*/
+                if ( update_wf )
+                {
+                    printf( "%0.6f [ch %d] (%0.6f)\t"
+                            , tm
+                            , ch
+                            , samplev
+                          );
+
+                    wfd[ch].wf3 = wfd[ch].wf2;
+                    wfd[ch].wf2 = wfd[ch].wf1;
+                    wfd[ch].wf1 = wfd[ch].wf0;
+                    wfd[ch].wf0 = samplev;
+
+                    printf( "%0.6f %0.6f %0.6f %0.6f\n"
+                            , wfd[ch].wf3
+                            , wfd[ch].wf2
+                            , wfd[ch].wf1
+                            , wfd[ch].wf0
+                          );
+
+                    if ( bbd_is_pause( &(wfd[ch]) ) == ES_OK )
+                    {
+                        pause_cnt++;
+                    }
+                }
 #ifdef _DEBUG
                 /*write waveform data*/
                 if (    ofd
@@ -228,7 +258,7 @@ EXIT_STATUS bb_decode( const char* _infname )
                    )
                 {
                     fprintf( ofd[ch], "%0.6f\n"
-                            , block[ sample * opt.channels + ch ]
+                            , samplev
                            );
                 }
 #endif
@@ -286,10 +316,6 @@ EXIT_STATUS bbd_initialize_goertzel_data( GOERTZEL_DATA* _data, const float _sr,
     _data->sn2 = 0;
 
     _data->xk = 0;
-    _data->xk0 = 0;
-    _data->xk1 = 0;
-    _data->xk2 = 0;
-    _data->xk3 = 0;
 
     _data->freq = _target_freq;
     _data->cfactor = 2 * cosf( 2 * M_PI * _target_freq / _sr );
@@ -319,54 +345,36 @@ EXIT_STATUS bbd_goertzel( GOERTZEL_DATA* _data, const float _sample, const BOOL 
 
     if ( _update_xk )
     {
-        _data->xk3 = _data->xk2;
-        _data->xk2 = _data->xk1;
-        _data->xk1 = _data->xk0;
-        _data->xk0 = _data->xk;
     }
 
     return ES_OK;
 }
 
-EXIT_STATUS bbd_is_pause( GOERTZEL_DATA* _data )
+EXIT_STATUS bbd_is_pause( WAVEFORM_DATA* _data )
 {
     if ( !_data )
     {
-        fprintf( stderr, "NULL Goertzel data\n" );
+        fprintf( stderr, "NULL waveform data\n" );
 
         return ES_BADARG;
     }
 
-    float max = MAX3(   _data->xk0
-                      , _data->xk1
-                      , _data->xk2
+    float max = MAX4(   ABS(_data->wf3)
+                      , ABS(_data->wf2)
+                      , ABS(_data->wf1)
+                      , ABS(_data->wf0)
                     );
 
-    if ( max == 0 )
+/*FIXME: magic number*/
+    if ( max < 0.01 )
     {
-        printf("\n");
-        return ES_BAD;
+        printf( "possible pause: max = %0.6f\n"
+                , max
+              );
+        return ES_OK;
     }
 
-    float rel[3] = { 0 };
-
-    rel[2] = ABS(_data->xk3) / (_data->xk2? ABS(_data->xk2): 1);
-    rel[1] = ABS(_data->xk2) / (_data->xk1? ABS(_data->xk1): 1);
-    rel[0] = ABS(_data->xk1) / (_data->xk0? ABS(_data->xk0): 1);
-
-    /*printf( "%-06.6f(%-06.6f) %-06.6f(%-06.6f) %-06.6f(%-06.6f)\n"*/
-    printf( "%-06.6f %-06.6f %-06.6f\n"
-            /*, _data->xk2*/
-            , rel[2]
-            /*, _data->xk1*/
-            , rel[1]
-            /*, _data->xk0*/
-            , rel[0]
-          );
-
     return ES_BAD;
-
-/*TODO: fill 3 points; check if monot. incr => not pause. pause otherwise*/
 }
 
 EXIT_STATUS bbd_goertzel_reset( GOERTZEL_DATA* _data )
