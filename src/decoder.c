@@ -133,6 +133,8 @@ EXIT_STATUS bb_decode( const char* _infname )
     }
 
     float tm = 0;
+    size_t tm_sample = 0;
+    size_t samples_in_10ms = (size_t)(floorf((10 / 1000.0) / (1.0/opt.samplerate)));
     sf_count_t readcount = 0;
     int sample = 0;
     int ch = 0;
@@ -166,10 +168,13 @@ EXIT_STATUS bb_decode( const char* _infname )
                  *since pauses between signals R not necessary NULLS
                  */
 
+                int pause_cnt = 0;
+                /*BOOL update_xk = ((int)(floorf( (int)(tm*1000) )) % 10 == 0);*/
+                BOOL update_xk = ( tm_sample % samples_in_10ms == 0 );
                 for ( i = 0; i < DTMF_FREQ_COUNT; i++ )
                 {
                     GOERTZEL_DATA* data = &(gdata[ i + ch ]);
-                    if ( bbd_goertzel( data, block[ sample * opt.channels + ch ] ) == ES_OK )
+                    if ( bbd_goertzel( data, block[ sample * opt.channels + ch ], update_xk ) == ES_OK )
                     {
                         /*printf( "Goertzel xk(%f hz) = %0.6f\n"*/
                         /*        , data->freq*/
@@ -188,13 +193,26 @@ EXIT_STATUS bb_decode( const char* _infname )
 
                             fprintf( ofd[ch], "%0.6f%c"
                                     , data->xk
-                                    , ( i != DTMF_FREQ_COUNT-1 ?
-                                        ' ' :
-                                        '\n'
-                                      )
+                                    /*, ( i != DTMF_FREQ_COUNT-1 ?*/
+                                        /*' ' :*/
+                                        /*'\n'*/
+                                      /*)*/
+                                    , ' '
                                    );
                         }
 #endif
+                        /*if ( (int)(floorf( tm*1000 )) % 10 == 0 )*/
+                        if ( update_xk )
+                        {
+                            printf( "%0.6f (%f)\t"
+                                    , tm
+                                    , data->freq
+                                  );
+                            if ( bbd_is_pause( data ) == ES_OK )
+                            {
+                                pause_cnt++;
+                            }
+                        }
                     }
 #ifdef _DEBUG
                     else
@@ -203,9 +221,30 @@ EXIT_STATUS bb_decode( const char* _infname )
                     }
 #endif
                 }
+#ifdef _DEBUG
+                /*write waveform data*/
+                if (    ofd
+                     && ofd[ch]
+                   )
+                {
+                    fprintf( ofd[ch], "%0.6f\n"
+                            , block[ sample * opt.channels + ch ]
+                           );
+                }
+#endif
+
+                if ( pause_cnt+1 == DTMF_FREQ_COUNT )
+                {
+                    for ( i = 0; i < DTMF_FREQ_COUNT; i++ )
+                    {
+                        GOERTZEL_DATA* data = &(gdata[ i + ch ]);
+                        bbd_goertzel_reset( data );
+                    }
+                }
             }
 
             tm += (1.0 / opt.samplerate);
+            tm_sample++;
         }
 
         memset( block, 0, blockcount * sizeof( float ) );
@@ -245,7 +284,12 @@ EXIT_STATUS bbd_initialize_goertzel_data( GOERTZEL_DATA* _data, const float _sr,
     _data->sn = 0;
     _data->sn1 = 0;
     _data->sn2 = 0;
+
     _data->xk = 0;
+    _data->xk0 = 0;
+    _data->xk1 = 0;
+    _data->xk2 = 0;
+    _data->xk3 = 0;
 
     _data->freq = _target_freq;
     _data->cfactor = 2 * cosf( 2 * M_PI * _target_freq / _sr );
@@ -253,7 +297,7 @@ EXIT_STATUS bbd_initialize_goertzel_data( GOERTZEL_DATA* _data, const float _sr,
     return ES_OK;
 }
 
-EXIT_STATUS bbd_goertzel( GOERTZEL_DATA* _data, const float _sample )
+EXIT_STATUS bbd_goertzel( GOERTZEL_DATA* _data, const float _sample, const BOOL _update_xk )
 {
     if ( !_data )
     {
@@ -273,5 +317,66 @@ EXIT_STATUS bbd_goertzel( GOERTZEL_DATA* _data, const float _sample )
                 _data->cfactor * _data->sn1 * _data->sn2 +
                 SQR(_data->sn2);
 
+    if ( _update_xk )
+    {
+        _data->xk3 = _data->xk2;
+        _data->xk2 = _data->xk1;
+        _data->xk1 = _data->xk0;
+        _data->xk0 = _data->xk;
+    }
+
     return ES_OK;
+}
+
+EXIT_STATUS bbd_is_pause( GOERTZEL_DATA* _data )
+{
+    if ( !_data )
+    {
+        fprintf( stderr, "NULL Goertzel data\n" );
+
+        return ES_BADARG;
+    }
+
+    float max = MAX3(   _data->xk0
+                      , _data->xk1
+                      , _data->xk2
+                    );
+
+    if ( max == 0 )
+    {
+        printf("\n");
+        return ES_BAD;
+    }
+
+    float rel[3] = { 0 };
+
+    rel[2] = ABS(_data->xk3) / (_data->xk2? ABS(_data->xk2): 1);
+    rel[1] = ABS(_data->xk2) / (_data->xk1? ABS(_data->xk1): 1);
+    rel[0] = ABS(_data->xk1) / (_data->xk0? ABS(_data->xk0): 1);
+
+    /*printf( "%-06.6f(%-06.6f) %-06.6f(%-06.6f) %-06.6f(%-06.6f)\n"*/
+    printf( "%-06.6f %-06.6f %-06.6f\n"
+            /*, _data->xk2*/
+            , rel[2]
+            /*, _data->xk1*/
+            , rel[1]
+            /*, _data->xk0*/
+            , rel[0]
+          );
+
+    return ES_BAD;
+
+/*TODO: fill 3 points; check if monot. incr => not pause. pause otherwise*/
+}
+
+EXIT_STATUS bbd_goertzel_reset( GOERTZEL_DATA* _data )
+{
+    if ( !_data )
+    {
+        fprintf( stderr, "NULL Goertzel data\n" );
+
+        return ES_BADARG;
+    }
+
+    return ES_BAD;
 }

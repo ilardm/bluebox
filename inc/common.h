@@ -41,4 +41,9 @@ typedef enum BOOL_ENUM { false, true } BOOL;
 
 #define SQR(x) (x*x)
 
+#define MAX(a,b) (a>b? a: b)
+#define MAX3(a,b,c) MAX( MAX(a,b), MAX(b,c) )
+
+#define ABS(x) (x>=0? x: (-1*x))
+
 #endif
