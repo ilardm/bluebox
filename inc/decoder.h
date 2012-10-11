@@ -60,6 +60,7 @@ EXIT_STATUS bb_decode( const char* );
 EXIT_STATUS bbd_initialize_goertzel_data( GOERTZEL_DATA*, const float, const float);
 EXIT_STATUS bbd_goertzel( GOERTZEL_DATA*, const float, const BOOL );
 EXIT_STATUS bbd_save_start_stop( GOERTZEL_DATA*, const BOOL );
+EXIT_STATUS bbd_detect_key( const GOERTZEL_DATA*, const int, const int, char* );
 
 EXIT_STATUS bbd_is_signal( WAVEFORM_DATA* );
 EXIT_STATUS bbd_is_pause( WAVEFORM_DATA* );

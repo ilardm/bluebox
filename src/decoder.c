@@ -293,8 +293,6 @@ EXIT_STATUS bb_decode( const char* _infname )
                                 {
                                     GOERTZEL_DATA* data = &(gdata[ i*opt.channels + ch ]);
                                     bbd_save_start_stop( data, false );
-/*TODO: detect key*/
-                                    /*bbd_goertzel_reset( data );*/
                                 }
 
                                 dstate = DS_WAIT_FOR_PAUSE_END;
@@ -308,10 +306,16 @@ EXIT_STATUS bb_decode( const char* _infname )
                             {
                                 if ( (tm - wfd[ch].tm)*1000 >= DTMF_PAUSE_LENGTH_MIN )
                                 {
+/*TODO: detect key*/
+                                    char c = 0x00;
+                                    if ( bbd_detect_key( gdata, opt.channels, ch, &c ) == ES_OK )
+                                    {
+                                        printf( "%c", c );
+                                    }
+
                                     for ( i = 0; i < DTMF_FREQ_COUNT; i++ )
                                     {
                                         GOERTZEL_DATA* data = &(gdata[ i*opt.channels + ch ]);
-/*TODO: detect key*/
                                         bbd_goertzel_reset( data );
                                     }
 
@@ -351,6 +355,28 @@ EXIT_STATUS bb_decode( const char* _infname )
         }
 
         memset( block, 0, blockcount * sizeof( float ) );
+    }
+
+    if (    dstate == DS_WAIT_FOR_PAUSE
+         || dstate == DS_WAIT_FOR_PAUSE_END
+       )
+    {
+        /*emulate normal signal end*/
+        for ( ch = 0; ch < opt.channels; ch ++ )
+        {
+            for ( i = 0; i < DTMF_FREQ_COUNT; i++ )
+            {
+                GOERTZEL_DATA* data = &(gdata[ i*opt.channels + ch ]);
+                bbd_save_start_stop( data, false );
+            }
+
+/*TODO: detect signal*/
+            char c = 0x00;
+            if ( bbd_detect_key( gdata, opt.channels, ch, &c ) == ES_OK )
+            {
+                printf( "%c", c );
+            }
+        }
     }
 
     free( block );
@@ -455,6 +481,104 @@ EXIT_STATUS bbd_save_start_stop( GOERTZEL_DATA* _data, const BOOL _start )
 #endif
 
     return ES_OK;
+}
+
+EXIT_STATUS bbd_detect_key( const GOERTZEL_DATA* _data, const int _chcount, const int _ch, char* _key )
+{
+    if ( !_data )
+    {
+        fprintf( stderr, "NULL Goertzel data\n" );
+
+        return ES_BADARG;
+    }
+
+    if ( !_key )
+    {
+        fprintf( stderr, "NULL destination character\n" );
+
+        return ES_BADARG;
+    }
+
+    if (    _ch < 0
+         || _chcount < 1
+       )
+    {
+        fprintf( stderr, "invalid channels count(%d) || channel number(%d)\n"
+                , _chcount
+                , _ch
+               );
+
+        return ES_BADARG;
+    }
+
+    int i = 0;
+    short freq = 0;
+    DTMF_KEY_FREQ kf = { 0 }; /* short */
+    float xk_hi = 0;
+    float xk_lo = 0;
+    for ( i = 0; i < DTMF_FREQ_COUNT; i++ )
+    {
+        const GOERTZEL_DATA* data = &(_data[ i*_chcount + _ch ]);
+
+        switch ( i )
+        {
+        case 0:     freq = DTMF_X1_FREQ; break;
+        case 1:     freq = DTMF_X2_FREQ; break;
+        case 2:     freq = DTMF_X3_FREQ; break;
+        case 3:     freq = DTMF_X4_FREQ; break;
+        case 4:     freq = DTMF_Y1_FREQ; break;
+        case 5:     freq = DTMF_Y2_FREQ; break;
+        case 6:     freq = DTMF_Y3_FREQ; break;
+        case 7:     freq = DTMF_Y4_FREQ; break;
+        }
+
+#ifdef _DEBUG
+        printf( "check data(%f) @ freq %d(%f) (kf %dx%d; xk %fx%f)\n"
+                , data->xk_stop
+                , freq
+                , data->freq
+                , kf.hi
+                , kf.lo
+                , xk_hi
+                , xk_lo
+              );
+#endif
+        if ( data->xk_stop >= xk_hi )
+        {
+            xk_lo = xk_hi;
+            kf.lo = kf.hi;
+
+            xk_hi = data->xk_stop;
+            kf.hi = freq;
+        }
+        else if ( data->xk_stop >= xk_lo )
+        {
+            xk_lo = data->xk_stop;
+            kf.lo = freq;
+        }
+    }
+
+    short exchg = MAX( kf.hi, kf.lo );
+    kf.lo = MIN( kf.hi, kf.lo );
+    kf.hi = exchg;
+
+#ifdef _DEBUG
+    printf( "key: %dx%d\n"
+            , kf.hi
+            , kf.lo
+          );
+#endif
+
+    DTMF_KEYPAD kp = DTMF_KP_COUNT;
+    if ( dtmf_kf2kp( &kf, &kp ) == ES_OK )
+    {
+        if ( dtmf_kp2c( kp, _key ) == ES_OK )
+        {
+            return ES_OK;
+        }
+    }
+
+    return ES_BAD;
 }
 
 EXIT_STATUS bbd_is_signal( WAVEFORM_DATA* _data )
