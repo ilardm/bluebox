@@ -128,7 +128,7 @@ EXIT_STATUS bb_decode( const char* _infname )
         int ch = 0;
         for ( ch = 0; ch < opt.channels; ch++ )
         {
-            GOERTZEL_DATA* data = &(gdata[ i + ch ]);
+            GOERTZEL_DATA* data = &(gdata[ i*opt.channels + ch ]);
             float tfreq = 0;
             switch ( i )
             {
@@ -163,7 +163,7 @@ EXIT_STATUS bb_decode( const char* _infname )
 /*#endif*/
         for ( samplen = 0; samplen < readcount; samplen++ )
         {
-            samplev = block[ samplen * opt.channels + ch ];
+            samplev = block[ samplen ];
 /*#ifdef _DEBUG*/
 /*            printf( "%0.6f: ", tm );*/
 /*#endif*/
@@ -189,7 +189,7 @@ EXIT_STATUS bb_decode( const char* _infname )
                 BOOL update_wf = ( tm_sample % samples_for_analyze == 0 );
                 for ( i = 0; i < DTMF_FREQ_COUNT; i++ )
                 {
-                    GOERTZEL_DATA* data = &(gdata[ i + ch ]);
+                    GOERTZEL_DATA* data = &(gdata[ i*opt.channels + ch ]);
                     if ( bbd_goertzel( data, samplev, false ) == ES_OK )
                     {
                         /*printf( "Goertzel xk(%f hz) = %0.6f\n"*/
@@ -260,7 +260,7 @@ EXIT_STATUS bb_decode( const char* _infname )
                             {
                                 for ( i = 0; i < DTMF_FREQ_COUNT; i++ )
                                 {
-                                    GOERTZEL_DATA* data = &(gdata[ i + ch ]);
+                                    GOERTZEL_DATA* data = &(gdata[ i*opt.channels + ch ]);
                                     bbd_save_start_stop( data, true );
                                 }
 
@@ -291,7 +291,7 @@ EXIT_STATUS bb_decode( const char* _infname )
                             {
                                 for ( i = 0; i < DTMF_FREQ_COUNT; i++ )
                                 {
-                                    GOERTZEL_DATA* data = &(gdata[ i + ch ]);
+                                    GOERTZEL_DATA* data = &(gdata[ i*opt.channels + ch ]);
                                     bbd_save_start_stop( data, false );
 /*TODO: detect key*/
                                     /*bbd_goertzel_reset( data );*/
@@ -310,7 +310,7 @@ EXIT_STATUS bb_decode( const char* _infname )
                                 {
                                     for ( i = 0; i < DTMF_FREQ_COUNT; i++ )
                                     {
-                                        GOERTZEL_DATA* data = &(gdata[ i + ch ]);
+                                        GOERTZEL_DATA* data = &(gdata[ i*opt.channels + ch ]);
 /*TODO: detect key*/
                                         bbd_goertzel_reset( data );
                                     }
@@ -355,6 +355,7 @@ EXIT_STATUS bb_decode( const char* _infname )
 
     free( block );
     free( gdata );
+    free( wfd );
  #ifdef _DEBUG
     if ( ofd )
     {
@@ -362,6 +363,7 @@ EXIT_STATUS bb_decode( const char* _infname )
         {
             fclose( ofd[i] );
         }
+        free( ofd );
     }
 #endif
    sf_close( ifd );
