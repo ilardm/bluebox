@@ -33,6 +33,9 @@ typedef struct GOERTZEL_DATA_STRUCT
 
     float xk0;
     float xk;
+
+    float xk_start;
+    float xk_stop;
 } GOERTZEL_DATA;
 
 typedef struct VAWEFORM_DATA_STRUCT
@@ -43,10 +46,18 @@ typedef struct VAWEFORM_DATA_STRUCT
     float wf3;
 } WAVEFORM_DATA;
 
+typedef enum DECODER_STATE_ENUM
+{
+      DS_WAIT_FOR_SIGNAL
+    , DS_WAIT_FOR_PAUSE
+} DECODER_STATE;
+
 EXIT_STATUS bb_decode( const char* );
 EXIT_STATUS bbd_initialize_goertzel_data( GOERTZEL_DATA*, const float, const float);
 EXIT_STATUS bbd_goertzel( GOERTZEL_DATA*, const float, const BOOL );
+EXIT_STATUS bbd_save_start_stop( GOERTZEL_DATA*, const BOOL );
 
+EXIT_STATUS bbd_is_signal( WAVEFORM_DATA* );
 EXIT_STATUS bbd_is_pause( WAVEFORM_DATA* );
 EXIT_STATUS bbd_goertzel_reset( GOERTZEL_DATA* );
 
