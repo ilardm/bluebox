@@ -44,12 +44,16 @@ typedef struct VAWEFORM_DATA_STRUCT
     float wf1;
     float wf2;
     float wf3;
+
+    float tm;
 } WAVEFORM_DATA;
 
 typedef enum DECODER_STATE_ENUM
 {
       DS_WAIT_FOR_SIGNAL
+    , DS_WAIT_FOR_SIGNAL_END
     , DS_WAIT_FOR_PAUSE
+    , DS_WAIT_FOR_PAUSE_END
 } DECODER_STATE;
 
 EXIT_STATUS bb_decode( const char* );

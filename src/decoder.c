@@ -148,7 +148,7 @@ EXIT_STATUS bb_decode( const char* _infname )
 
     float tm = 0;
     size_t tm_sample = 0;
-    size_t samples_in_10ms = (size_t)(floorf((10 / 1000.0) / (1.0/opt.samplerate)));
+    size_t samples_for_analyze = (size_t)(floorf((2 / 1000.0) / (1.0/opt.samplerate)));
     sf_count_t readcount = 0;
     int samplen = 0;
     float samplev = 0;
@@ -186,7 +186,7 @@ EXIT_STATUS bb_decode( const char* _infname )
                  */
 
                 /*int pause_cnt = 0;*/
-                BOOL update_wf = ( tm_sample % samples_in_10ms == 0 );
+                BOOL update_wf = ( tm_sample % samples_for_analyze == 0 );
                 for ( i = 0; i < DTMF_FREQ_COUNT; i++ )
                 {
                     GOERTZEL_DATA* data = &(gdata[ i + ch ]);
@@ -264,7 +264,24 @@ EXIT_STATUS bb_decode( const char* _infname )
                                     bbd_save_start_stop( data, true );
                                 }
 
-                                dstate = DS_WAIT_FOR_PAUSE;
+                                dstate = DS_WAIT_FOR_SIGNAL_END;
+                                wfd[ch].tm = tm;
+                            }
+                            break;
+                        }
+                    case DS_WAIT_FOR_SIGNAL_END:
+                        {
+                            if ( bbd_is_signal( &(wfd[ch]) ) == ES_OK )
+                            {
+                                if ( (tm - wfd[ch].tm)*1000 >= DTMF_SIGNAL_LENGTH_MIN )
+                                {
+                                    dstate = DS_WAIT_FOR_PAUSE;
+                                    wfd[ch].tm = tm;
+                                }
+                            }
+                            else
+                            {
+                                dstate = DS_WAIT_FOR_SIGNAL;
                             }
                             break;
                         }
@@ -277,10 +294,34 @@ EXIT_STATUS bb_decode( const char* _infname )
                                     GOERTZEL_DATA* data = &(gdata[ i + ch ]);
                                     bbd_save_start_stop( data, false );
 /*TODO: detect key*/
-                                    bbd_goertzel_reset( data );
+                                    /*bbd_goertzel_reset( data );*/
                                 }
 
-                                dstate = DS_WAIT_FOR_SIGNAL;
+                                dstate = DS_WAIT_FOR_PAUSE_END;
+                                wfd[ch].tm = tm;
+                            }
+                            break;
+                        }
+                    case DS_WAIT_FOR_PAUSE_END:
+                        {
+                            if ( bbd_is_pause( &(wfd[ch]) ) == ES_OK )
+                            {
+                                if ( (tm - wfd[ch].tm)*1000 >= DTMF_PAUSE_LENGTH_MIN )
+                                {
+                                    for ( i = 0; i < DTMF_FREQ_COUNT; i++ )
+                                    {
+                                        GOERTZEL_DATA* data = &(gdata[ i + ch ]);
+/*TODO: detect key*/
+                                        bbd_goertzel_reset( data );
+                                    }
+
+                                    dstate = DS_WAIT_FOR_SIGNAL;
+                                    wfd[ch].tm = tm;
+                                }
+                            }
+                            else
+                            {
+                                dstate = DS_WAIT_FOR_PAUSE;
                             }
                             break;
                         }
@@ -426,10 +467,10 @@ EXIT_STATUS bbd_is_signal( WAVEFORM_DATA* _data )
 /*FIXME: magic number*/
     float trs = 0.01;
 
-    if (    _data->wf3 > trs
-         || _data->wf2 > trs
-         || _data->wf1 > trs
-         || _data->wf0 > trs
+    if (    ABS(_data->wf3) > trs
+         || ABS(_data->wf2) > trs
+         || ABS(_data->wf1) > trs
+         || ABS(_data->wf0) > trs
        )
     {
         return ES_OK;
