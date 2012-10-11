@@ -21,7 +21,8 @@
 
 #include    "common.h"
 
-static const char* DTMF_NUMBERS = "0123456789*#ABCD";
+/*static const char* DTMF_NUMBERS = "0123456789*#ABCD";*/
+static const char* DTMF_NUMBERS = "123A456B789C*0#D";
 
 // should be defines/enum/etc, not static const <type>
 // http://stackoverflow.com/a/3025106
@@ -78,7 +79,9 @@ typedef enum DTMF_KEYPAD_ENUM {
 } DTMF_KEYPAD;
 
 DTMF_KEYPAD dtmf_c2kp( const char );
+EXIT_STATUS dtmf_kp2c( const DTMF_KEYPAD, char* );
 BOOL dtmf_is_keypad_value( const DTMF_KEYPAD );
+EXIT_STATUS dtmf_kf2kp( const DTMF_KEY_FREQ*, DTMF_KEYPAD* );
 
 static const DTMF_KEY_FREQ DTMF_KEYPAD_FREQ[ DTMF_KP_COUNT ] = {
       { DTMF_X1_FREQ, DTMF_Y1_FREQ }
