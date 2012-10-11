@@ -123,6 +123,16 @@ EXIT_STATUS bb_decode( const char* _infname )
         return ES_BAD;
     }
 
+    char* results = (char*)calloc( CHARBUFSZ * opt.channels, sizeof(char) );
+    if ( !results )
+    {
+        fprintf( stderr, "unable to allocate memory(%zu bytes) for results\n"
+                , (CHARBUFSZ * opt.channels * sizeof(char))
+               );
+
+        return ES_BAD;
+    }
+
     for ( i = 0; i < DTMF_FREQ_COUNT; i++ )
     {
         int ch = 0;
@@ -310,7 +320,9 @@ EXIT_STATUS bb_decode( const char* _infname )
                                     char c = 0x00;
                                     if ( bbd_detect_key( gdata, opt.channels, ch, &c ) == ES_OK )
                                     {
-                                        printf( "%c", c );
+                                        /*printf( "%c", c );*/
+                                        char* dst = results + CHARBUFSZ * ch;
+                                        sprintf( dst + strlen( dst ), "%c", c );
                                     }
 
                                     for ( i = 0; i < DTMF_FREQ_COUNT; i++ )
@@ -374,14 +386,26 @@ EXIT_STATUS bb_decode( const char* _infname )
             char c = 0x00;
             if ( bbd_detect_key( gdata, opt.channels, ch, &c ) == ES_OK )
             {
-                printf( "%c", c );
+                /*printf( "%c", c );*/
+                char* dst = results + CHARBUFSZ * ch;
+                sprintf( dst + strlen( dst ), "%c", c );
             }
         }
+    }
+
+    for ( ch = 0; ch < opt.channels; ch++ )
+    {
+        char* dst = results + CHARBUFSZ * ch;
+        printf( "result for ch[%d]: '%s'\n"
+                , ch
+                , dst
+                );
     }
 
     free( block );
     free( gdata );
     free( wfd );
+    free( results );
  #ifdef _DEBUG
     if ( ofd )
     {

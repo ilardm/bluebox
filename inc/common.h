@@ -39,6 +39,8 @@ typedef enum EXIT_STATUS_ENUM
 
 typedef enum BOOL_ENUM { false, true } BOOL;
 
+#define CHARBUFSZ 256
+
 #define SQR(x) (x*x)
 
 #define MAX(a,b) (a>b? a: b)
