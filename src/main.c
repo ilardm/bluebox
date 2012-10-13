@@ -39,8 +39,6 @@ int main( int argc, char** argv )
     }
 #endif /* =================================================================== */
 
-    display_license();
-
     /*check if help required*/
     if (    argc == 2
          && (    strncmp( argv[1], "-h", 2 ) == 0
@@ -111,6 +109,8 @@ int main( int argc, char** argv )
 
 void display_usage( const char* _argv, const char* _errmsg )
 {
+    display_license();
+
     if ( _errmsg )
     {
         fprintf( stderr, "%s\n", _errmsg );
