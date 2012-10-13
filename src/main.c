@@ -20,6 +20,7 @@
 
 #include    "main.h"
 #include    "encoder.h"
+#include    "decoder.h"
 
 int main( int argc, char** argv )
 {
@@ -37,8 +38,6 @@ int main( int argc, char** argv )
         }
     }
 #endif /* =================================================================== */
-
-    display_license();
 
     /*check if help required*/
     if (    argc == 2
@@ -76,6 +75,8 @@ int main( int argc, char** argv )
 #ifdef _DEBUG /* ============================================================ */
         printf( "run decoder\n" );
 #endif /* =================================================================== */
+
+        return bb_decode( argv[2] );
     }
     else if ( strncmp( argv[1], "-e", 2 ) == 0 )
     {
@@ -108,6 +109,8 @@ int main( int argc, char** argv )
 
 void display_usage( const char* _argv, const char* _errmsg )
 {
+    display_license();
+
     if ( _errmsg )
     {
         fprintf( stderr, "%s\n", _errmsg );

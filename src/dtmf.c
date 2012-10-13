@@ -77,6 +77,29 @@ DTMF_KEYPAD dtmf_c2kp( const char _c )
     return ret;
 }
 
+EXIT_STATUS dtmf_kp2c( const DTMF_KEYPAD _kp, char* _char )
+{
+    if ( !_char )
+    {
+        fprintf( stderr, "NULL destination character\n" );
+
+        return ES_BADARG;
+    }
+
+    if ( dtmf_is_keypad_value( _kp ) == false )
+    {
+        fprintf( stderr, "invalid keypad value: %d\n"
+                , _kp
+               );
+
+        return ES_BADARG;
+    }
+
+    *_char = DTMF_NUMBERS[ _kp ];
+
+    return ES_OK;
+}
+
 BOOL dtmf_is_keypad_value( const DTMF_KEYPAD _kp )
 {
     return ( (    _kp >= DTMF_KP_1
@@ -84,4 +107,33 @@ BOOL dtmf_is_keypad_value( const DTMF_KEYPAD _kp )
                 true :
                 false
            );
+}
+
+EXIT_STATUS dtmf_kf2kp( const DTMF_KEY_FREQ* _kf, DTMF_KEYPAD* _kp )
+{
+    if (    !_kf
+         || !_kp
+       )
+    {
+        fprintf( stderr, "NULL kf(%c) || kp(%c)\n"
+                , ( _kf? 'F': 't' )
+                , ( _kp? 'F': 't' )
+               );
+
+        return ES_BADARG;
+    }
+
+    for ( DTMF_KEYPAD kp = DTMF_KP_1; dtmf_is_keypad_value( kp ) == true; kp++ )
+    {
+        if (    DTMF_KEYPAD_FREQ[ kp ].hi == _kf->hi
+             && DTMF_KEYPAD_FREQ[ kp ].lo == _kf->lo
+           )
+        {
+            *_kp = kp;
+
+            return ES_OK;
+        }
+    }
+
+    return ES_BAD;
 }

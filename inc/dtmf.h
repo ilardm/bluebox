@@ -21,7 +21,8 @@
 
 #include    "common.h"
 
-static const char* DTMF_NUMBERS = "0123456789*#ABCD";
+/*static const char* DTMF_NUMBERS = "0123456789*#ABCD";*/
+static const char* DTMF_NUMBERS = "123A456B789C*0#D";
 
 // should be defines/enum/etc, not static const <type>
 // http://stackoverflow.com/a/3025106
@@ -36,6 +37,7 @@ enum DTMF_CONSTANTS {
     , DTMF_Y2_FREQ = 770 /* Hz */
     , DTMF_Y3_FREQ = 852 /* Hz */
     , DTMF_Y4_FREQ = 941 /* Hz */
+    , DTMF_FREQ_COUNT = 8
 
     //signal-related constants
     , DTMF_SIGNAL_LENGTH        = 70 /* ms */
@@ -43,6 +45,7 @@ enum DTMF_CONSTANTS {
     , DTMF_PAUSE_LENGTH         = 50 /* ms */
     , DTMF_PAUSE_LENGTH_MIN     = 40 /* ms */
     , DTMF_SAMPLE_RATE          = (8 * 1000) /* Hz */
+    , DTMF_READ_BLOCK_SIZE      = 256
 };
 
 typedef struct DTMF_KEY_FREQ_STRUCT {
@@ -76,7 +79,9 @@ typedef enum DTMF_KEYPAD_ENUM {
 } DTMF_KEYPAD;
 
 DTMF_KEYPAD dtmf_c2kp( const char );
+EXIT_STATUS dtmf_kp2c( const DTMF_KEYPAD, char* );
 BOOL dtmf_is_keypad_value( const DTMF_KEYPAD );
+EXIT_STATUS dtmf_kf2kp( const DTMF_KEY_FREQ*, DTMF_KEYPAD* );
 
 static const DTMF_KEY_FREQ DTMF_KEYPAD_FREQ[ DTMF_KP_COUNT ] = {
       { DTMF_X1_FREQ, DTMF_Y1_FREQ }

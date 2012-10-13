@@ -39,4 +39,17 @@ typedef enum EXIT_STATUS_ENUM
 
 typedef enum BOOL_ENUM { false, true } BOOL;
 
+#define CHARBUFSZ 256
+
+#define SQR(x) (x*x)
+
+#define MAX(a,b) (a>b? a: b)
+#define MAX3(a,b,c) MAX( MAX(a,b), MAX(b,c) )
+#define MAX4(a,b,c,d) MAX( MAX(a,b), MAX(c,d) )
+
+#define MIN(a,b) (a<b? a: b)
+#define MIN4(a,b,c,d) MIN( MIN(a,b), MIN(c,d) )
+
+#define ABS(x) (x>=0? x: (-1*x))
+
 #endif
