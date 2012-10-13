@@ -47,7 +47,6 @@ EXIT_STATUS bb_decode( const char* _infname )
         return ES_BAD;
     }
 
-#ifdef _DEBUG
     FILE** ofd = (FILE**)calloc( opt.channels, sizeof(FILE*) );
     if ( !ofd )
     {
@@ -70,7 +69,6 @@ EXIT_STATUS bb_decode( const char* _infname )
             }
         }
     }
-#endif
 
 #ifdef _DEBUG
     printf( "'%s' -> %d Hz, %d ch\n"
@@ -207,7 +205,6 @@ EXIT_STATUS bb_decode( const char* _infname )
                         /*        , data->xk*/
                         /*      );*/
 
-#ifdef _DEBUG
                         if (    ofd
                              && ofd[ch]
                            )
@@ -226,7 +223,6 @@ EXIT_STATUS bb_decode( const char* _infname )
                                     , ' '
                                    );
                         }
-#endif
                     }
 #ifdef _DEBUG
                     else
@@ -239,23 +235,27 @@ EXIT_STATUS bb_decode( const char* _infname )
                 /*if ( (int)(floorf( tm*1000 )) % 10 == 0 )*/
                 if ( update_wf )
                 {
+#ifdef _DEBUG
                     printf( "%0.6f [ch %d] (%0.6f)\t"
-                            , tm
-                            , ch
-                            , samplev
-                          );
+                           , tm
+                           , ch
+                           , samplev
+                         );
+#endif
 
                     wfd[ch].wf3 = wfd[ch].wf2;
                     wfd[ch].wf2 = wfd[ch].wf1;
                     wfd[ch].wf1 = wfd[ch].wf0;
                     wfd[ch].wf0 = samplev;
 
+#ifdef _DEBUG
                     printf( "%0.6f %0.6f %0.6f %0.6f\n"
-                            , wfd[ch].wf3
-                            , wfd[ch].wf2
-                            , wfd[ch].wf1
-                            , wfd[ch].wf0
-                          );
+                           , wfd[ch].wf3
+                           , wfd[ch].wf2
+                           , wfd[ch].wf1
+                           , wfd[ch].wf0
+                         );
+#endif
 
 #ifdef _DEBUG
                     printf( "dstate: %d\n"
@@ -349,7 +349,6 @@ EXIT_STATUS bb_decode( const char* _infname )
                         }
                     }
                 }
-#ifdef _DEBUG
                 /*write waveform data*/
                 if (    ofd
                      && ofd[ch]
@@ -359,7 +358,6 @@ EXIT_STATUS bb_decode( const char* _infname )
                             , samplev
                            );
                 }
-#endif
             }
 
             tm += (1.0 / opt.samplerate);
@@ -393,6 +391,13 @@ EXIT_STATUS bb_decode( const char* _infname )
         }
     }
 
+    printf( "decoding %s\n"
+            , ( es == ES_OK ?
+                "done" :
+                "failed"
+              )
+          );
+
     for ( ch = 0; ch < opt.channels; ch++ )
     {
         char* dst = results + CHARBUFSZ * ch;
@@ -406,7 +411,6 @@ EXIT_STATUS bb_decode( const char* _infname )
     free( gdata );
     free( wfd );
     free( results );
- #ifdef _DEBUG
     if ( ofd )
     {
         for ( i = 0; i < opt.channels; i++ )
@@ -415,16 +419,9 @@ EXIT_STATUS bb_decode( const char* _infname )
         }
         free( ofd );
     }
-#endif
-   sf_close( ifd );
+    sf_close( ifd );
 
-    printf( "decoding %s\n"
-            , ( es == ES_OK ?
-                "done" :
-                "failed"
-              )
-          );
-    return ES_OK;
+    return es;
 }
 
 EXIT_STATUS bbd_initialize_goertzel_data( GOERTZEL_DATA* _data, const float _sr, const float _target_freq)
