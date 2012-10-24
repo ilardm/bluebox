@@ -122,6 +122,35 @@ EXIT_STATUS bbg_is_pause( WAVEFORM_DATA* _data )
     return ES_BAD;
 }
 
+EXIT_STATUS bbg_save_start_stop( GOERTZEL_DATA* _data, const BOOL _start )
+{
+    if ( !_data )
+    {
+        fprintf( stderr, "NULL Goertzel data\n" );
+
+        return ES_BADARG;
+    }
+
+    if ( _start )
+    {
+        _data->xk_start = _data->xk;
+    }
+    else
+    {
+        _data->xk_stop = _data->xk;
+    }
+
+#ifdef _DEBUG
+    printf( "save %s for freq %f: %0.6f\n"
+            , ( _start == true ? "start" : "stop" )
+            , _data->freq
+            , ( _start == true ? _data->xk_start : _data->xk_stop )
+          );
+#endif
+
+    return ES_OK;
+}
+
 EXIT_STATUS bbg_goertzel_reset( GOERTZEL_DATA* _data )
 {
     if ( !_data )

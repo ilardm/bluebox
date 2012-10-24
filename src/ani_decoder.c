@@ -160,7 +160,7 @@ EXIT_STATUS bb_ani_decode( const char* _infname )
     int samplen = 0;
     float samplev = 0;
     int ch = 0;
-
+    ANI_DECODER_STATE dstate = ADS_WAIT_FOR_REQUEST;
     while ( (readcount = sf_readf_float( ifd, block, blockcount )) > 0 )
     {
         for ( samplen = 0; samplen < readcount; samplen++ )
@@ -220,6 +220,75 @@ EXIT_STATUS bb_ani_decode( const char* _infname )
                            , wfd[ch].wf0
                          );
 #endif
+
+#ifdef _DEBUG
+                    printf( "dstate: %d\n"
+                            , dstate
+                          );
+#endif
+                    switch ( dstate )
+                    {
+                    case ADS_WAIT_FOR_REQUEST:
+                        {
+                            if ( bbg_is_signal( &(wfd[ch]) ) == ES_OK )
+                            {
+                               for ( i = 0; i < ANI_FREQ_COUNT; i++ )
+                               {
+                                   GOERTZEL_DATA* data = &(gdata[ i*opt.channels + ch ]);
+                                   bbg_save_start_stop( data, true );
+                               }
+
+                               dstate = ADS_WAIT_FOR_REQUEST_END;
+                               wfd[ch].tm = tm;
+                            }
+                            break;
+                        }
+                    case ADS_WAIT_FOR_REQUEST_END:
+                        {
+/*TODO: check if only request is growing*/
+                            if ( bbg_is_signal( &(wfd[ch]) ) == ES_OK )
+                            {
+                               if ( (tm - wfd[ch].tm)*1000 >= ANI_REQUEST_DUR )
+                               {
+                                   for ( i = 0; i < ANI_FREQ_COUNT; i++ )
+                                   {
+                                       GOERTZEL_DATA* data = &(gdata[ i*opt.channels + ch ]);
+                                       bbg_goertzel_reset( data );
+                                   }
+
+                                   dstate = ADS_WAIT_FOR_ANI_END;
+                                   wfd[ch].tm = tm;
+                               }
+                            }
+                            else
+                            {
+                               dstate = ADS_WAIT_FOR_REQUEST_END;
+                            }
+                            break;
+                        }
+                    case ADS_WAIT_FOR_ANI_END:
+                        {
+                            /*if ( bbg_is_pause( &(wfd[ch]) ) == ES_OK )*/
+                            /*{*/
+                            /*    for ( i = 0; i < DTMF_FREQ_COUNT; i++ )*/
+                            /*    {*/
+                            /*        GOERTZEL_DATA* data = &(gdata[ i*opt.channels + ch ]);*/
+                            /*        bbd_save_start_stop( data, false );*/
+                            /*    }*/
+
+                            /*    dstate = DS_WAIT_FOR_PAUSE_END;*/
+                            /*    wfd[ch].tm = tm;*/
+                            /*}*/
+                            break;
+                        }
+                    default:
+                        {
+                            fprintf( stderr, "unknown decoder state: %d\n"
+                                    , dstate
+                                   );
+                        }
+                    }
+
                 }
                 /*write waveform data*/
                 if (    ofd

@@ -271,7 +271,7 @@ EXIT_STATUS bb_decode( const char* _infname )
                                 for ( i = 0; i < DTMF_FREQ_COUNT; i++ )
                                 {
                                     GOERTZEL_DATA* data = &(gdata[ i*opt.channels + ch ]);
-                                    bbd_save_start_stop( data, true );
+                                    bbg_save_start_stop( data, true );
                                 }
 
                                 dstate = DS_WAIT_FOR_SIGNAL_END;
@@ -302,7 +302,7 @@ EXIT_STATUS bb_decode( const char* _infname )
                                 for ( i = 0; i < DTMF_FREQ_COUNT; i++ )
                                 {
                                     GOERTZEL_DATA* data = &(gdata[ i*opt.channels + ch ]);
-                                    bbd_save_start_stop( data, false );
+                                    bbg_save_start_stop( data, false );
                                 }
 
                                 dstate = DS_WAIT_FOR_PAUSE_END;
@@ -377,7 +377,7 @@ EXIT_STATUS bb_decode( const char* _infname )
             for ( i = 0; i < DTMF_FREQ_COUNT; i++ )
             {
                 GOERTZEL_DATA* data = &(gdata[ i*opt.channels + ch ]);
-                bbd_save_start_stop( data, false );
+                bbg_save_start_stop( data, false );
             }
 
 /*TODO: detect signal*/
@@ -422,35 +422,6 @@ EXIT_STATUS bb_decode( const char* _infname )
     sf_close( ifd );
 
     return es;
-}
-
-EXIT_STATUS bbd_save_start_stop( GOERTZEL_DATA* _data, const BOOL _start )
-{
-    if ( !_data )
-    {
-        fprintf( stderr, "NULL Goertzel data\n" );
-
-        return ES_BADARG;
-    }
-
-    if ( _start )
-    {
-        _data->xk_start = _data->xk;
-    }
-    else
-    {
-        _data->xk_stop = _data->xk;
-    }
-
-#ifdef _DEBUG
-    printf( "save %s for freq %f: %0.6f\n"
-            , ( _start == true ? "start" : "stop" )
-            , _data->freq
-            , ( _start == true ? _data->xk_start : _data->xk_stop )
-          );
-#endif
-
-    return ES_OK;
 }
 
 EXIT_STATUS bbd_detect_key( const GOERTZEL_DATA* _data, const int _chcount, const int _ch, char* _key )

@@ -51,6 +51,7 @@ EXIT_STATUS bbg_initialize_goertzel_data( GOERTZEL_DATA*, const float, const flo
 EXIT_STATUS bbg_goertzel( GOERTZEL_DATA*, const float, const BOOL );
 EXIT_STATUS bbg_is_signal( WAVEFORM_DATA* );
 EXIT_STATUS bbg_is_pause( WAVEFORM_DATA* );
+EXIT_STATUS bbg_save_start_stop( GOERTZEL_DATA*, const BOOL );
 EXIT_STATUS bbg_goertzel_reset( GOERTZEL_DATA* );
 
 #endif

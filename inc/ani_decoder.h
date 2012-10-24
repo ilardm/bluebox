@@ -23,6 +23,13 @@
 #include    "ani.h"
 #include    "goertzel.h"
 
+typedef enum ANI_DECODER_STATE_ENUM
+{
+      ADS_WAIT_FOR_REQUEST
+    , ADS_WAIT_FOR_REQUEST_END
+    , ADS_WAIT_FOR_ANI_END
+} ANI_DECODER_STATE;
+
 EXIT_STATUS bb_ani_decode( const char* );
 
 #endif

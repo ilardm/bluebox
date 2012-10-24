@@ -32,7 +32,6 @@ typedef enum DECODER_STATE_ENUM
 } DECODER_STATE;
 
 EXIT_STATUS bb_decode( const char* );
-EXIT_STATUS bbd_save_start_stop( GOERTZEL_DATA*, const BOOL );
 EXIT_STATUS bbd_detect_key( const GOERTZEL_DATA*, const int, const int, char* );
 
 #endif
