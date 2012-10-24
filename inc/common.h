@@ -51,5 +51,8 @@ typedef enum BOOL_ENUM { false, true } BOOL;
 #define MIN4(a,b,c,d) MIN( MIN(a,b), MIN(c,d) )
 
 #define ABS(x) (x>=0? x: (-1*x))
+#define AVG(a,b) ( (a+b)/2 )
+
+#define S2SAMPLES(s,sr) ( floorf( s / (1.0/sr) ) )
 
 #endif

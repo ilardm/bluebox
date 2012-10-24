@@ -45,6 +45,7 @@ typedef struct VAWEFORM_DATA_STRUCT
     float wf3;
 
     float tm;
+    float peak;
 } WAVEFORM_DATA;
 
 EXIT_STATUS bbg_initialize_goertzel_data( GOERTZEL_DATA*, const float, const float);

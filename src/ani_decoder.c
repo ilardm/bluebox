@@ -155,12 +155,21 @@ EXIT_STATUS bb_ani_decode( const char* _infname )
 
     float tm = 0;
     size_t tm_sample = 0;
-    size_t samples_for_analyze = (size_t)(floorf((2 / 1000.0) / (1.0/opt.samplerate)));
+    size_t samples_for_analyze = (size_t)S2SAMPLES( (1/1000.0) , opt.samplerate );
     sf_count_t readcount = 0;
     int samplen = 0;
     float samplev = 0;
     int ch = 0;
-    ANI_DECODER_STATE dstate = ADS_WAIT_FOR_REQUEST;
+    ANI_DECODER_STATE dstate = ADS_WAIT_FOR_SIGNAL;
+    struct PEAK_STRUCT {
+        float value;
+        float tm;
+    };
+    struct PEAK_STRUCT peaks[3] = { {0} };
+    int peakn = 0;
+    const int peaksToMiss = 2;
+    const float peaktrs = 0.7;
+    size_t peakPeriod = 0;
     while ( (readcount = sf_readf_float( ifd, block, blockcount )) > 0 )
     {
         for ( samplen = 0; samplen < readcount; samplen++ )
@@ -220,65 +229,118 @@ EXIT_STATUS bb_ani_decode( const char* _infname )
                            , wfd[ch].wf0
                          );
 #endif
+                }
 
-#ifdef _DEBUG
-                    printf( "dstate: %d\n"
-                            , dstate
-                          );
-#endif
+/*FIXME: `if` crutch*/
+                if ( true )
+                {
+/*#ifdef _DEBUG*/
+/*                    printf( "dstate: %d\n"*/
+/*                            , dstate*/
+/*                          );*/
+/*#endif*/
                     switch ( dstate )
                     {
-                    case ADS_WAIT_FOR_REQUEST:
+                    case ADS_WAIT_FOR_SIGNAL:
                         {
                             if ( bbg_is_signal( &(wfd[ch]) ) == ES_OK )
                             {
-                               for ( i = 0; i < ANI_FREQ_COUNT; i++ )
-                               {
-                                   GOERTZEL_DATA* data = &(gdata[ i*opt.channels + ch ]);
-                                   bbg_save_start_stop( data, true );
-                               }
+#ifdef _DEBUG
+                                printf( "signal start @ %0.6f\n"
+                                        , tm
+                                      );
+#endif
+                               /*for ( i = 0; i < ANI_FREQ_COUNT; i++ )*/
+                               /*{*/
+                               /*    GOERTZEL_DATA* data = &(gdata[ i*opt.channels + ch ]);*/
+                               /*    bbg_save_start_stop( data, true );*/
+                               /*}*/
 
-                               dstate = ADS_WAIT_FOR_REQUEST_END;
+                               dstate = ADS_WAIT_FOR_PEAK;
                                wfd[ch].tm = tm;
                             }
                             break;
                         }
+                    case ADS_WAIT_FOR_PEAK:
+                        {
+                            /*avoid neighbour dots in the same peak*/
+                            if ( update_wf )
+                            {
+                                if ( samplev > peaktrs )
+                                {
+                                    if ( samplev > peaks[ peakn ].value )
+                                    {
+#ifdef _DEBUG
+                                        printf( "peak #%d @ %0.6f: %0.6f\n"
+                                                , peakn
+                                                , tm
+                                                , samplev
+                                              );
+#endif
+
+                                        peaks[ peakn ].value = samplev;
+                                        peaks[ peakn ].tm = tm;
+
+                                        peakn++;
+
+                                        if ( peakn == 3 )
+                                        {
+                                            dstate = ADS_WAIT_FOR_SYNC;
+                                        }
+                                    }
+                                }
+                            }
+                            break;
+                        }
+                    case ADS_WAIT_FOR_SYNC:
+                        {
+                            float T = AVG(   ABS(peaks[1].tm - peaks[0].tm)
+                                           , ABS(peaks[2].tm - peaks[1].tm)
+                                         );
+                            peakPeriod = (size_t)S2SAMPLES( T, opt.samplerate );
+#ifdef _DEBUG
+                            printf( "peak period %0.6f\n"
+                                    , T
+                                  );
+#endif
+
+                            peakn = peaksToMiss;
+                            dstate = ADS_WAIT_FOR_REQUEST_END;
+
+                            break;
+                        }
                     case ADS_WAIT_FOR_REQUEST_END:
                         {
-/*TODO: check if only request is growing*/
-                            if ( bbg_is_signal( &(wfd[ch]) ) == ES_OK )
+                            if ( tm_sample % peakPeriod == 0 )
                             {
-                               if ( (tm - wfd[ch].tm)*1000 >= ANI_REQUEST_DUR )
-                               {
-                                   for ( i = 0; i < ANI_FREQ_COUNT; i++ )
-                                   {
-                                       GOERTZEL_DATA* data = &(gdata[ i*opt.channels + ch ]);
-                                       bbg_goertzel_reset( data );
-                                   }
+                                if ( samplev < peaktrs )
+                                {
+#ifdef _DEBUG
+                                    printf( "missing peak @ %0.6f\n"
+                                            , tm
+                                          );
+#endif
+                                    peakn--;
 
-                                   dstate = ADS_WAIT_FOR_ANI_END;
-                                   wfd[ch].tm = tm;
-                               }
-                            }
-                            else
-                            {
-                               dstate = ADS_WAIT_FOR_REQUEST_END;
+                                    if ( !peakn )
+                                    {
+#ifdef _DEBUG
+                                        printf( "request ends @ %0.6f\n"
+                                                , tm
+                                              );
+#endif
+                                        dstate = ADS_WAIT_FOR_ANI_END;
+                                    }
+                                }
+                                else
+                                {
+                                    peakn = peaksToMiss;
+                                }
                             }
                             break;
                         }
                     case ADS_WAIT_FOR_ANI_END:
                         {
-                            /*if ( bbg_is_pause( &(wfd[ch]) ) == ES_OK )*/
-                            /*{*/
-                            /*    for ( i = 0; i < DTMF_FREQ_COUNT; i++ )*/
-                            /*    {*/
-                            /*        GOERTZEL_DATA* data = &(gdata[ i*opt.channels + ch ]);*/
-                            /*        bbd_save_start_stop( data, false );*/
-                            /*    }*/
-
-                            /*    dstate = DS_WAIT_FOR_PAUSE_END;*/
-                            /*    wfd[ch].tm = tm;*/
-                            /*}*/
                             break;
                         }
                     default:
