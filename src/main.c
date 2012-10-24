@@ -21,6 +21,7 @@
 #include    "main.h"
 #include    "encoder.h"
 #include    "decoder.h"
+#include    "ani_decoder.h"
 
 int main( int argc, char** argv )
 {
@@ -57,10 +58,26 @@ int main( int argc, char** argv )
          )
     {
         display_usage(   argv[0]
-                       , "first option must be 2char length"
+                       , "first option must be at least 2char length"
                        );
 
         return ES_BADARG;
+    }
+    else if ( strncmp( argv[1], "-da", 3 ) == 0 )
+    {
+        /*ani decoder requires input file to decode*/
+        if ( argc < 3 )
+        {
+            display_usage(   argv[0]
+                           , "ANI decoder requires input file to decode"
+                           );
+            return ES_BADARG;
+        }
+#ifdef _DEBUG /* ============================================================ */
+        printf( "run ANI decoder\n" );
+#endif /* =================================================================== */
+
+        return bb_ani_decode( argv[2] );
     }
     else if ( strncmp( argv[1], "-d", 2 ) == 0 )
     {
@@ -120,6 +137,7 @@ void display_usage( const char* _argv, const char* _errmsg )
             "run %s with following options:\n"
             "\t-d <infile> - decode DTMF in <infile>\n"
             "\t-e <number> <outfile> - encode <number> to <outfile>\n"
+            "\t-da <infile> - decode ANI in <infile>\n"
             , ( _argv ? _argv : "program" )
             );
 }
