@@ -45,6 +45,9 @@ enum ANI_CONSTANTS {
     , ANI_FREQ_4        = 1300
     , ANI_FREQ_5        = 1500
     , ANI_FREQ_6        = 1700
+    , ANI_FREQ_COUNT    = 6
+
+    , ANI_READ_BLOCK_SIZE   = 256
 };
 
 typedef struct ANI_KEY_FREQ_STRUCT {
@@ -52,7 +55,7 @@ typedef struct ANI_KEY_FREQ_STRUCT {
     short lo;
 } ANI_KEY_FREQ;
 
-typedef enum DTMF_KEYPAD_ENUM {
+typedef enum ANI_KEYPAD_ENUM {
       ANI_KP_S
 
     , ANI_KP_1
