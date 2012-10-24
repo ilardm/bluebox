@@ -140,12 +140,13 @@ EXIT_STATUS bb_ani_decode( const char* _infname )
             float tfreq = 0;
             switch ( i )
             {
-            case 0:     tfreq = ANI_FREQ_1; break;
-            case 1:     tfreq = ANI_FREQ_2; break;
-            case 2:     tfreq = ANI_FREQ_3; break;
-            case 3:     tfreq = ANI_FREQ_4; break;
-            case 4:     tfreq = ANI_FREQ_5; break;
-            case 5:     tfreq = ANI_FREQ_6; break;
+            case 0:     tfreq = ANI_REQUEST_FREQ; break;
+            case 1:     tfreq = ANI_FREQ_1; break;
+            case 2:     tfreq = ANI_FREQ_2; break;
+            case 3:     tfreq = ANI_FREQ_3; break;
+            case 4:     tfreq = ANI_FREQ_4; break;
+            case 5:     tfreq = ANI_FREQ_5; break;
+            case 6:     tfreq = ANI_FREQ_6; break;
             }
 
             bbg_initialize_goertzel_data( data, opt.samplerate, tfreq );

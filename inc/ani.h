@@ -45,7 +45,7 @@ enum ANI_CONSTANTS {
     , ANI_FREQ_4        = 1300
     , ANI_FREQ_5        = 1500
     , ANI_FREQ_6        = 1700
-    , ANI_FREQ_COUNT    = 6
+    , ANI_FREQ_COUNT    = 7     /* freq1-fre6 + request_freq */
 
     , ANI_READ_BLOCK_SIZE   = 256
 };
