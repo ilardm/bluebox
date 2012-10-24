@@ -16,6 +16,11 @@
  *along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef ANI_DECODER_H
+#define ANI_DECODER_H
+
 #include    "common.h"
 
 EXIT_STATUS bb_ani_decode( const char* );
+
+#endif
