@@ -20,6 +20,8 @@
 #define ANI_DECODER_H
 
 #include    "common.h"
+#include    "ani.h"
+#include    "goertzel.h"
 
 EXIT_STATUS bb_ani_decode( const char* );
 
