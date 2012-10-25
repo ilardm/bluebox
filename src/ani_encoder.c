@@ -54,6 +54,31 @@ EXIT_STATUS bb_ani_encode( const char* _number, const char* _outfname )
         }
     }
 
+    size_t pnumbersz = strlen(_number)+1;
+    char* pnumber = (char*)calloc( pnumbersz, sizeof(char) );
+    if ( !pnumber )
+    {
+        fprintf( stderr, "unable to allocate memory(%zu bytes) for preppared number\n"
+                , pnumbersz
+               );
+
+/*TODO: close and free all allocated resources*/
+
+        return ES_BAD;
+    }
+
+    if ( ES_OK != bb_ani_prepare_number( _number, pnumber, pnumbersz ) )
+    {
+        fprintf( stderr, "unable to prepare number\n" );
+
+/*TODO: close and free all allocated resources*/
+
+        return ES_BAD;
+    }
+
+/*FIXME: delete*/
+    return ES_OK;
+
     static const char* outext = ".wav";
     char* outfname = (char*)calloc( strlen( _outfname ) + strlen( outext ) + 1
                                     , sizeof(char)
@@ -121,6 +146,72 @@ EXIT_STATUS bb_ani_encode( const char* _number, const char* _outfname )
               )
           );
     return es;
+}
+
+/** create string ready for encoding
+ *
+ * searches for repeats and reverses input string
+ *
+ * @param _src source string
+ * @param _dst destination string
+ * @paaram _dstsz size of destination string (with trailing NULL)
+ *
+ * @return ES_BADARG in case of NULL src/dst or if dstsz is not enought<br>
+ *         ES_OK if preparation successfull<br>
+ *         ES_BAD if unable ot prepare
+ */
+EXIT_STATUS bb_ani_prepare_number( const char* _src, char* _dst, const size_t _dstsz )
+{
+    if (    !_src
+         || !_dst
+         || _dstsz < strlen(_src)+1
+       )
+    {
+        fprintf( stderr, "NULL  src(%c) || dst(%c) || not enought dst size(%c)\n"
+                 , ( _src?'f':'t' )
+                 , ( _dst?'f':'t' )
+                 , ( (_dstsz < strlen(_src)+1)?'f':'t' )
+               );
+
+        return ES_BADARG;
+    }
+
+#ifdef _DEBUG
+    printf( "processing '%s' string\n"
+            , _src
+          );
+#endif
+
+    int i = 0;
+    char prev = _src[0];
+    _dst[_dstsz-2] = _src[0];   /* -2 -- zero-based && NULL-terminated*/
+    for ( i = 1; i < strlen(_src); i++ )
+    {
+        char c = _src[i];
+
+        if (    _src[i] == prev
+             && (i+1) % 2 == 0
+           )
+        {
+            if ( ani_kp2c( ANI_KP_R, &c ) != ES_OK )
+            {
+                fprintf( stderr, "unable to convert ANI_KP_R to char\n" );
+                return ES_BAD;
+            }
+        }
+
+        _dst[ _dstsz-2 - i ] = c;
+        prev = _src[i];
+    }
+
+#ifdef _DEBUG
+    printf( "prepared: '%s' -> '%s'\n"
+            , _src
+            , _dst
+          );
+#endif
+
+    return ES_OK;
 }
 
 EXIT_STATUS bb_ani_fill_key_signal( ANI_KEYPAD _key )

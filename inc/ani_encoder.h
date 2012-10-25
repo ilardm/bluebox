@@ -23,6 +23,7 @@
 #include    "ani.h"
 
 EXIT_STATUS bb_ani_encode( const char*, const char* );
+EXIT_STATUS bb_ani_prepare_number( const char*, char*, const size_t );
 EXIT_STATUS bb_ani_fill_key_signal( ANI_KEYPAD );
 void bb_ani_free_key_signals();
 
