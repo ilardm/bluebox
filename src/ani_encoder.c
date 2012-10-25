@@ -115,7 +115,7 @@ EXIT_STATUS bb_ani_encode( const char* _number, const char* _outfname )
     opt.samplerate  = ANI_SAMPLE_RATE;
     opt.channels    = 1;
     opt.format      =   SF_FORMAT_WAV
-                      | SF_FORMAT_PCM_16
+                      | SF_FORMAT_FLOAT
                       ;
 
     SNDFILE* ofd = sf_open( outfname
@@ -134,13 +134,66 @@ EXIT_STATUS bb_ani_encode( const char* _number, const char* _outfname )
     }
 
     printf( "encoding '%s' to '%s'\n"
-            , _number
+            , pnumber
             , outfname
           );
 
     EXIT_STATUS es = ES_OK;
 
     /*run encoding*/
+    for ( i = 0; i < strlen( pnumber ); i++ )
+    {
+        char c = pnumber[ i ];
+#ifdef _DEBUG /* ============================================================ */
+        printf( "processing '%c' key\n"
+                , c
+              );
+#endif /* =================================================================== */
+        ANI_KEYPAD key = ani_c2kp( c );
+        if ( !ani_is_keypad_value( key ) )
+        {
+            fprintf( stderr, "'%c'(position %d) -> %d - in not keypad value\n"
+                    , c
+                    , i
+                    , key
+                   );
+
+            es = ES_BAD;
+            break;
+        }
+
+        if ( !ANI_KEY_SIGNALS[ key ].filled )
+        {
+#ifdef _DEBUG /* ============================================================ */
+        printf( "generating '%c' key signal data\n"
+                , c
+              );
+#endif /* =================================================================== */
+
+            if ( bb_ani_fill_key_signal( key ) != ES_OK )
+            {
+                fprintf( stderr, "unable to fill signal data for key '%c'\n"
+                        , c
+                       );
+
+                es = ES_BAD;
+                break;
+            }
+        }
+#ifdef _DEBUG /* ============================================================ */
+        else
+        {
+            printf( "'%c' signal already cached\n"
+                    , c
+                  );
+        }
+#endif /* =================================================================== */
+
+        sf_write_float(   ofd
+                        , (float*)(ANI_KEY_SIGNALS[ key ].data)
+                        , ANI_KEY_SIGNALS[ key ].datasz
+                      );
+    }
 
     /* --------------------------------------------------------------------- */
 
