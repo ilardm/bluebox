@@ -77,18 +77,18 @@ typedef enum ANI_KEYPAD_ENUM {
 static const ANI_KEY_FREQ ANI_KEYPAD_FREQ[ ANI_KP_COUNT ] = {
       { ANI_FREQ_3, ANI_FREQ_6 }    /* S */
 
-    , { ANI_FREQ_1, ANI_FREQ_2 }    /* 1 */
-    , { ANI_FREQ_1, ANI_FREQ_3 }
-    , { ANI_FREQ_2, ANI_FREQ_3 }
-    , { ANI_FREQ_1, ANI_FREQ_4 }
-    , { ANI_FREQ_2, ANI_FREQ_4 }
-    , { ANI_FREQ_3, ANI_FREQ_4 }
-    , { ANI_FREQ_1, ANI_FREQ_5 }
-    , { ANI_FREQ_2, ANI_FREQ_5 }
-    , { ANI_FREQ_3, ANI_FREQ_5 }
-    , { ANI_FREQ_4, ANI_FREQ_5 }    /* 0 */
+    , { ANI_FREQ_2, ANI_FREQ_1 }    /* 1 */
+    , { ANI_FREQ_3, ANI_FREQ_1 }
+    , { ANI_FREQ_3, ANI_FREQ_2 }
+    , { ANI_FREQ_4, ANI_FREQ_1 }
+    , { ANI_FREQ_4, ANI_FREQ_2 }
+    , { ANI_FREQ_4, ANI_FREQ_3 }
+    , { ANI_FREQ_5, ANI_FREQ_1 }
+    , { ANI_FREQ_5, ANI_FREQ_2 }
+    , { ANI_FREQ_5, ANI_FREQ_3 }
+    , { ANI_FREQ_5, ANI_FREQ_4 }    /* 0 */
 
-    , { ANI_FREQ_4, ANI_FREQ_6 }    /* R */
+    , { ANI_FREQ_6, ANI_FREQ_4 }    /* R */
 };
 
 ANI_KEYPAD ani_c2kp( const char );
