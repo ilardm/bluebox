@@ -48,6 +48,7 @@ enum ANI_CONSTANTS {
     , ANI_FREQ_COUNT    = 7     /* freq1-fre6 + request_freq */
 
     , ANI_READ_BLOCK_SIZE   = 256
+    , ANI_ENCODER_NUMBER_CATEGORY = '5' /* call for free ;) */
     , ANI_SAMPLE_RATE   = 44100     /* Hz */
 };
 

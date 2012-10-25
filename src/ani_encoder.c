@@ -54,7 +54,7 @@ EXIT_STATUS bb_ani_encode( const char* _number, const char* _outfname )
         }
     }
 
-    size_t pnumbersz = strlen(_number)+1;
+    size_t pnumbersz = strlen(_number)+1+2; /* +1 -- NULL; +2 -- S && category */
     char* pnumber = (char*)calloc( pnumbersz, sizeof(char) );
     if ( !pnumber )
     {
@@ -62,11 +62,22 @@ EXIT_STATUS bb_ani_encode( const char* _number, const char* _outfname )
                 , pnumbersz
                );
 
-        free( pnumber );
         return ES_BAD;
     }
 
-    if ( ES_OK != bb_ani_prepare_number( _number, pnumber, pnumbersz ) )
+    char c = 0x00;
+    if ( ani_kp2c( ANI_KP_S, &c ) != ES_OK )
+    {
+        fprintf( stderr, "unable to convert ANI_KP_S to char\n" );
+
+        free( pnumber );
+        return ES_BAD;
+    }
+    memcpy( pnumber, _number, strlen(_number) );
+    *( pnumber + strlen(pnumber) ) = ANI_ENCODER_NUMBER_CATEGORY;
+    *( pnumber + strlen(pnumber) ) = c;
+
+    if ( ES_OK != bb_ani_prepare_number( pnumber, pnumbersz ) )
     {
         fprintf( stderr, "unable to prepare number\n" );
 
@@ -129,8 +140,7 @@ EXIT_STATUS bb_ani_encode( const char* _number, const char* _outfname )
 
     EXIT_STATUS es = ES_OK;
 
-    /*TODO: prepare number*/
-    /*TODO: run encoding*/
+    /*run encoding*/
 
     /* --------------------------------------------------------------------- */
 
@@ -152,61 +162,72 @@ EXIT_STATUS bb_ani_encode( const char* _number, const char* _outfname )
  *
  * searches for repeats and reverses input string
  *
- * @param _src source string
  * @param _dst destination string
- * @paaram _dstsz size of destination string (with trailing NULL)
+ * @param _dstsz size of dst string (including NULL-terminator)
  *
- * @return ES_BADARG in case of NULL src/dst or if dstsz is not enought<br>
+ * @return ES_BADARG in case of NULL dst<br>
  *         ES_OK if preparation successfull<br>
  *         ES_BAD if unable ot prepare
  */
-EXIT_STATUS bb_ani_prepare_number( const char* _src, char* _dst, const size_t _dstsz )
+EXIT_STATUS bb_ani_prepare_number( char* _dst, const size_t _dstsz )
 {
-    if (    !_src
-         || !_dst
-         || _dstsz < strlen(_src)+1
-       )
+    if ( !_dst )
     {
-        fprintf( stderr, "NULL  src(%c) || dst(%c) || not enought dst size(%c)\n"
-                 , ( _src?'f':'t' )
-                 , ( _dst?'f':'t' )
-                 , ( (_dstsz < strlen(_src)+1)?'f':'t' )
-               );
+        fprintf( stderr, "NULL dst\n" );
 
         return ES_BADARG;
     }
 
 #ifdef _DEBUG
     printf( "processing '%s' string\n"
-            , _src
+            , _dst
           );
 #endif
 
     int i = 0;
-    char prev = _src[0];
-    _dst[_dstsz-2] = _src[0];   /* -2 -- zero-based && NULL-terminated*/
-    for ( i = 1; i < strlen(_src); i++ )
+    int mid = (_dstsz-1)/2;
+    char prev = _dst[0];
+    char xchg = 0x00;
+    int pos = 0;
+    char r = 0x00;
+    int rcnt = 0;
+    if ( ani_kp2c( ANI_KP_R, &r ) != ES_OK )
     {
-        char c = _src[i];
+        fprintf( stderr, "unable to convert ANI_KP_R to char\n" );
+        return ES_BAD;
+    }
 
-        if (    _src[i] == prev
-             && (i+1) % 2 == 0
+    /*insert repeats*/
+    for ( i = 1; i < _dstsz-1; i++ )
+    {
+        xchg = _dst[i];
+        if ( _dst[i] == prev
+             && rcnt % 2 == 0
            )
         {
-            if ( ani_kp2c( ANI_KP_R, &c ) != ES_OK )
-            {
-                fprintf( stderr, "unable to convert ANI_KP_R to char\n" );
-                return ES_BAD;
-            }
+            xchg = r;
+            rcnt++;
+        }
+        else
+        {
+            rcnt=0;
         }
 
-        _dst[ _dstsz-2 - i ] = c;
-        prev = _src[i];
+        prev = _dst[i];
+        _dst[i] = xchg;
+    }
+
+    /*reverse string*/
+    for ( i = 0; i < mid; i++ )
+    {
+        pos = _dstsz - i - 2;   /* -2 -- NULL-terminated && zero-based */
+        xchg = _dst[ pos ];
+        _dst[pos] = _dst[i];
+        _dst[i] = xchg;
     }
 
 #ifdef _DEBUG
-    printf( "prepared: '%s' -> '%s'\n"
-            , _src
+    printf( "prepared: '%s'\n"
             , _dst
           );
 #endif
