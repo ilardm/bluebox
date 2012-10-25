@@ -242,6 +242,39 @@ EXIT_STATUS bb_ani_fill_key_signal( ANI_KEYPAD _key )
         return ES_BADARG;
     }
 
+    ANI_KEY_SIGNAL* signal = &( ANI_KEY_SIGNALS[ _key ] );
+
+    if ( signal->filled )
+    {
+        return ES_OK;
+    }
+
+    ANI_KEY_FREQ key_freq = ANI_KEYPAD_FREQ[ _key ];
+    size_t data_len = (ANI_SIGNAL_DUR / 1000.0) / (1.0 / ANI_SAMPLE_RATE);
+
+    float* data = (float*)calloc( data_len, sizeof( float ) );
+    if ( !data )
+    {
+        fprintf( stderr, "unable to allocate (%zu bytes) memory for signal data\n"
+                , data_len * sizeof( float )
+               );
+        return ES_BAD;
+    }
+
+    signal->data = data;
+    signal->datasz = data_len;
+
+    size_t i = 0;
+    for ( i = 0; i < data_len; i++ )
+    {
+        data[ i ] = ( sinf( 2 * M_PI * key_freq.lo * ( i * (1.0/ANI_SAMPLE_RATE) ) ) +
+                      sinf( 2 * M_PI * key_freq.hi * ( i * (1.0/ANI_SAMPLE_RATE) ) )
+                    );
+    }
+
+    signal->filled = true;
+
+
     return ES_OK;
 }
 
