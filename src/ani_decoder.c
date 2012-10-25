@@ -170,6 +170,8 @@ EXIT_STATUS bb_ani_decode( const char* _infname )
     const float peaktrs = 0.7;
     size_t peakSyncDur = (size_t)S2SAMPLES( ANI_REQUEST_DUR/1000.0, opt.samplerate );
     size_t peakPeriod = (size_t)S2SAMPLES( (1/500.0), opt.samplerate ); /*initial period value to tune*/
+    size_t ani_reset_period = (size_t)S2SAMPLES( (ANI_SIGNAL_DUR/1000.0) , opt.samplerate );
+    BOOL saveStart = true;
     size_t firstPeakSample = 0;
     size_t aniSignalFirstSample = 0;
     while ( (readcount = sf_readf_float( ifd, block, blockcount )) > 0 )
@@ -388,6 +390,46 @@ EXIT_STATUS bb_ani_decode( const char* _infname )
                         }
                     case ADS_WAIT_FOR_ANI_END:
                         {
+                            /*
+                             *  uncomment next line for continuous energy plot
+                             */
+                            /*break;*/
+
+                            if ( saveStart == true )
+                            {
+                                for ( i = 0; i < ANI_FREQ_COUNT; i++ )
+                                {
+                                    GOERTZEL_DATA* data = &(gdata[ i*opt.channels + ch ]);
+                                    bbg_save_start_stop( data, true );
+                                }
+
+                                saveStart = false;
+                            }
+
+                            if ( (tm_sample - aniSignalFirstSample) % ani_reset_period  == 0 )
+                            {
+                                for ( i = 0; i < ANI_FREQ_COUNT; i++ )
+                                {
+                                    GOERTZEL_DATA* data = &(gdata[ i*opt.channels + ch ]);
+                                    bbg_save_start_stop( data, false );
+                                }
+
+                                saveStart = true;
+
+                                char c = 0x00;
+                                if ( bb_ani_detect_key( gdata, opt.channels, ch, &c ) == ES_OK )
+                                {
+                                    /*printf( "%c", c );*/
+                                    char* dst = results + CHARBUFSZ * ch;
+                                    sprintf( dst + strlen( dst ), "%c", c );
+                                }
+
+                                for ( i = 0; i < ANI_FREQ_COUNT; i++ )
+                                {
+                                    GOERTZEL_DATA* data = &(gdata[ i*opt.channels + ch ]);
+                                    bbg_goertzel_reset( data );
+                                }
+                            }
                             break;
                         }
                     default:
@@ -417,6 +459,22 @@ EXIT_STATUS bb_ani_decode( const char* _infname )
         memset( block, 0, blockcount * sizeof( float ) );
     }
 
+    printf( "decoding %s\n"
+            , ( es == ES_OK ?
+                "done" :
+                "failed"
+              )
+          );
+
+    for ( ch = 0; ch < opt.channels; ch++ )
+    {
+        char* dst = results + CHARBUFSZ * ch;
+        printf( "result for ch[%d]: '%s'\n"
+                , ch
+                , dst
+                );
+    }
+
     /* --------------------------------------------------------------------- */
 
     free( block );
@@ -434,4 +492,101 @@ EXIT_STATUS bb_ani_decode( const char* _infname )
     sf_close( ifd );
 
     return es;
+}
+
+EXIT_STATUS bb_ani_detect_key( const GOERTZEL_DATA* _data, const int _chcount, const int _ch, char* _key )
+{
+    if ( !_data )
+    {
+        fprintf( stderr, "NULL Goertzel data\n" );
+
+        return ES_BADARG;
+    }
+
+    if ( !_key )
+    {
+        fprintf( stderr, "NULL destination character\n" );
+
+        return ES_BADARG;
+    }
+
+    if (    _ch < 0
+         || _chcount < 1
+       )
+    {
+        fprintf( stderr, "invalid channels count(%d) || channel number(%d)\n"
+                , _chcount
+                , _ch
+               );
+
+        return ES_BADARG;
+    }
+
+    int i = 0;
+    short freq = 0;
+    ANI_KEY_FREQ kf = { 0 }; /* short */
+    float xk_hi = 0;
+    float xk_lo = 0;
+    for ( i = 0; i < ANI_FREQ_COUNT; i++ )
+    {
+        const GOERTZEL_DATA* data = &(_data[ i*_chcount + _ch ]);
+
+        switch ( i )
+        {
+        case 0:     continue; /* skip 500 Hz */
+        case 1:     freq = ANI_FREQ_1; break;
+        case 2:     freq = ANI_FREQ_2; break;
+        case 3:     freq = ANI_FREQ_3; break;
+        case 4:     freq = ANI_FREQ_4; break;
+        case 5:     freq = ANI_FREQ_5; break;
+        case 6:     freq = ANI_FREQ_6; break;
+        }
+
+#ifdef _DEBUG
+        printf( "check data(%f) @ freq %d(%f) (kf %dx%d; xk %fx%f)\n"
+                , data->xk_stop
+                , freq
+                , data->freq
+                , kf.hi
+                , kf.lo
+                , xk_hi
+                , xk_lo
+              );
+#endif
+        if ( data->xk_stop >= xk_hi )
+        {
+            xk_lo = xk_hi;
+            kf.lo = kf.hi;
+
+            xk_hi = data->xk_stop;
+            kf.hi = freq;
+        }
+        else if ( data->xk_stop >= xk_lo )
+        {
+            xk_lo = data->xk_stop;
+            kf.lo = freq;
+        }
+    }
+
+    short exchg = MAX( kf.hi, kf.lo );
+    kf.lo = MIN( kf.hi, kf.lo );
+    kf.hi = exchg;
+
+#ifdef _DEBUG
+    printf( "key: %dx%d\n"
+            , kf.hi
+            , kf.lo
+          );
+#endif
+
+    ANI_KEYPAD kp = ANI_KP_COUNT;
+    if ( ani_kf2kp( &kf, &kp ) == ES_OK )
+    {
+        if ( ani_kp2c( kp, _key ) == ES_OK )
+        {
+            return ES_OK;
+        }
+    }
+
+    return ES_BAD;
 }

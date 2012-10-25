@@ -33,5 +33,6 @@ typedef enum ANI_DECODER_STATE_ENUM
 } ANI_DECODER_STATE;
 
 EXIT_STATUS bb_ani_decode( const char* );
+EXIT_STATUS bb_ani_detect_key( const GOERTZEL_DATA*, const int, const int, char* );
 
 #endif
