@@ -48,6 +48,7 @@ enum ANI_CONSTANTS {
     , ANI_FREQ_COUNT    = 7     /* freq1-fre6 + request_freq */
 
     , ANI_READ_BLOCK_SIZE   = 256
+    , ANI_SAMPLE_RATE   = 44100     /* Hz */
 };
 
 typedef struct ANI_KEY_FREQ_STRUCT {
@@ -95,5 +96,13 @@ ANI_KEYPAD ani_c2kp( const char );
 EXIT_STATUS ani_kp2c( const ANI_KEYPAD, char* );
 BOOL ani_is_keypad_value( const ANI_KEYPAD );
 EXIT_STATUS ani_kf2kp( const ANI_KEY_FREQ*, ANI_KEYPAD* );
+
+typedef struct ANI_KEY_SIGNAL_STRUCT {
+    BOOL    filled;
+    void*   data;
+    size_t  datasz;
+} ANI_KEY_SIGNAL;
+
+static ANI_KEY_SIGNAL ANI_KEY_SIGNALS[ ANI_KP_COUNT ] = { { 0 } };
 
 #endif
