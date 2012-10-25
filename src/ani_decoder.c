@@ -153,6 +153,15 @@ EXIT_STATUS bb_ani_decode( const char* _infname )
         }
     }
 
+    /*
+     * This decoder(in current implementation) assumes
+     * at least 50 ms of ANI request signal first
+     * and 40 ms of each ANI tone right after ANI request.
+     *
+     * However, real-world signals may differ -- checkout
+     * debug file for energy plot for manual decoding.
+     */
+
     float tm = 0;
     size_t tm_sample = 0;
     size_t samples_for_analyze = (size_t)S2SAMPLES( (1/1000.0) , opt.samplerate );
@@ -474,6 +483,8 @@ EXIT_STATUS bb_ani_decode( const char* _infname )
                 , dst
                 );
     }
+
+    printf( "WARNING: checkout debug energy plot for manual decoding\n" );
 
     /* --------------------------------------------------------------------- */
 
