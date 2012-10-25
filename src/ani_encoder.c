@@ -62,8 +62,7 @@ EXIT_STATUS bb_ani_encode( const char* _number, const char* _outfname )
                 , pnumbersz
                );
 
-/*TODO: close and free all allocated resources*/
-
+        free( pnumber );
         return ES_BAD;
     }
 
@@ -71,13 +70,9 @@ EXIT_STATUS bb_ani_encode( const char* _number, const char* _outfname )
     {
         fprintf( stderr, "unable to prepare number\n" );
 
-/*TODO: close and free all allocated resources*/
-
+        free( pnumber );
         return ES_BAD;
     }
-
-/*FIXME: delete*/
-    return ES_OK;
 
     static const char* outext = ".wav";
     char* outfname = (char*)calloc( strlen( _outfname ) + strlen( outext ) + 1
@@ -86,6 +81,8 @@ EXIT_STATUS bb_ani_encode( const char* _number, const char* _outfname )
     if ( !outfname )
     {
         fprintf( stderr, "unable to allocate memory for extfilename\n" );
+
+        free( pnumber );
         return ES_BAD;
     }
 
@@ -120,6 +117,8 @@ EXIT_STATUS bb_ani_encode( const char* _number, const char* _outfname )
                 , sf_strerror( ofd )
                 );
 
+        free( pnumber );
+        free( outfname );
         return ES_BAD;
     }
 
@@ -137,6 +136,7 @@ EXIT_STATUS bb_ani_encode( const char* _number, const char* _outfname )
 
     bb_ani_free_key_signals();
     free( outfname );
+    free( pnumber );
     sf_close( ofd );
 
     printf( "encoding %s\n"
