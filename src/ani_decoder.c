@@ -171,6 +171,7 @@ EXIT_STATUS bb_ani_decode( const char* _infname )
     size_t peakSyncDur = (size_t)S2SAMPLES( ANI_REQUEST_DUR/1000.0, opt.samplerate );
     size_t peakPeriod = (size_t)S2SAMPLES( (1/500.0), opt.samplerate ); /*initial period value to tune*/
     size_t firstPeakSample = 0;
+    size_t aniSignalFirstSample = 0;
     while ( (readcount = sf_readf_float( ifd, block, blockcount )) > 0 )
     {
         for ( samplen = 0; samplen < readcount; samplen++ )
@@ -266,12 +267,12 @@ EXIT_STATUS bb_ani_decode( const char* _infname )
                                      && (tm_sample - peaks[0].tm) < peakPeriod/2
                                    )
                                 {
-#ifdef _DEBUG
-                                    printf( "avoid neighbour points in the same peak: %zu < %zu\n"
-                                            , ( tm_sample - peaks[0].tm )
-                                            , ( peakPeriod/2 )
-                                            );
-#endif
+/*#ifdef _DEBUG*/
+/*                                    printf( "avoid neighbour points in the same peak: %zu < %zu\n"*/
+/*                                            , ( tm_sample - peaks[0].tm )*/
+/*                                            , ( peakPeriod/2 )*/
+/*                                            );*/
+/*#endif*/
                                 }
                                 else
                                 {
@@ -368,15 +369,19 @@ EXIT_STATUS bb_ani_decode( const char* _infname )
                                             bbg_goertzel_reset( data );
                                         }
 
+                                        aniSignalFirstSample = tm_sample;
                                         dstate = ADS_WAIT_FOR_ANI_END;
                                     }
                                 }
                                 else
                                 {
+                                    if ( peakn != peaksToMiss )
+                                    {
 #ifdef _DEBUG
-                                    printf( "restore missing peaks\n" );
+                                        printf( "restore missing peaks\n" );
 #endif
-                                    peakn = peaksToMiss;
+                                        peakn = peaksToMiss;
+                                    }
                                 }
                             }
                             break;
