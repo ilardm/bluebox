@@ -150,7 +150,7 @@ EXIT_STATUS bb_decode( const char* _infname )
             case 7:     tfreq = DTMF_Y4_FREQ; break;
             }
 
-            bbd_initialize_goertzel_data( data, opt.samplerate, tfreq );
+            bbg_initialize_goertzel_data( data, opt.samplerate, tfreq );
         }
     }
 
@@ -198,7 +198,7 @@ EXIT_STATUS bb_decode( const char* _infname )
                 for ( i = 0; i < DTMF_FREQ_COUNT; i++ )
                 {
                     GOERTZEL_DATA* data = &(gdata[ i*opt.channels + ch ]);
-                    if ( bbd_goertzel( data, samplev, false ) == ES_OK )
+                    if ( bbg_goertzel( data, samplev, false ) == ES_OK )
                     {
                         /*printf( "Goertzel xk(%f hz) = %0.6f\n"*/
                         /*        , data->freq*/
@@ -266,12 +266,12 @@ EXIT_STATUS bb_decode( const char* _infname )
                     {
                     case DS_WAIT_FOR_SIGNAL:
                         {
-                            if ( bbd_is_signal( &(wfd[ch]) ) == ES_OK )
+                            if ( bbg_is_signal( &(wfd[ch]) ) == ES_OK )
                             {
                                 for ( i = 0; i < DTMF_FREQ_COUNT; i++ )
                                 {
                                     GOERTZEL_DATA* data = &(gdata[ i*opt.channels + ch ]);
-                                    bbd_save_start_stop( data, true );
+                                    bbg_save_start_stop( data, true );
                                 }
 
                                 dstate = DS_WAIT_FOR_SIGNAL_END;
@@ -281,7 +281,7 @@ EXIT_STATUS bb_decode( const char* _infname )
                         }
                     case DS_WAIT_FOR_SIGNAL_END:
                         {
-                            if ( bbd_is_signal( &(wfd[ch]) ) == ES_OK )
+                            if ( bbg_is_signal( &(wfd[ch]) ) == ES_OK )
                             {
                                 if ( (tm - wfd[ch].tm)*1000 >= DTMF_SIGNAL_LENGTH_MIN )
                                 {
@@ -297,12 +297,12 @@ EXIT_STATUS bb_decode( const char* _infname )
                         }
                     case DS_WAIT_FOR_PAUSE:
                         {
-                            if ( bbd_is_pause( &(wfd[ch]) ) == ES_OK )
+                            if ( bbg_is_pause( &(wfd[ch]) ) == ES_OK )
                             {
                                 for ( i = 0; i < DTMF_FREQ_COUNT; i++ )
                                 {
                                     GOERTZEL_DATA* data = &(gdata[ i*opt.channels + ch ]);
-                                    bbd_save_start_stop( data, false );
+                                    bbg_save_start_stop( data, false );
                                 }
 
                                 dstate = DS_WAIT_FOR_PAUSE_END;
@@ -312,7 +312,7 @@ EXIT_STATUS bb_decode( const char* _infname )
                         }
                     case DS_WAIT_FOR_PAUSE_END:
                         {
-                            if ( bbd_is_pause( &(wfd[ch]) ) == ES_OK )
+                            if ( bbg_is_pause( &(wfd[ch]) ) == ES_OK )
                             {
                                 if ( (tm - wfd[ch].tm)*1000 >= DTMF_PAUSE_LENGTH_MIN )
                                 {
@@ -328,7 +328,7 @@ EXIT_STATUS bb_decode( const char* _infname )
                                     for ( i = 0; i < DTMF_FREQ_COUNT; i++ )
                                     {
                                         GOERTZEL_DATA* data = &(gdata[ i*opt.channels + ch ]);
-                                        bbd_goertzel_reset( data );
+                                        bbg_goertzel_reset( data );
                                     }
 
                                     dstate = DS_WAIT_FOR_SIGNAL;
@@ -377,7 +377,7 @@ EXIT_STATUS bb_decode( const char* _infname )
             for ( i = 0; i < DTMF_FREQ_COUNT; i++ )
             {
                 GOERTZEL_DATA* data = &(gdata[ i*opt.channels + ch ]);
-                bbd_save_start_stop( data, false );
+                bbg_save_start_stop( data, false );
             }
 
 /*TODO: detect signal*/
@@ -422,86 +422,6 @@ EXIT_STATUS bb_decode( const char* _infname )
     sf_close( ifd );
 
     return es;
-}
-
-EXIT_STATUS bbd_initialize_goertzel_data( GOERTZEL_DATA* _data, const float _sr, const float _target_freq)
-{
-    if ( !_data )
-    {
-        fprintf( stderr, "NULL Goertzel data\n" );
-
-        return ES_BADARG;
-    }
-
-    _data->sn = 0;
-    _data->sn1 = 0;
-    _data->sn2 = 0;
-
-    _data->xk = 0;
-
-    _data->xk_start = 0;
-    _data->xk_stop = 0;
-
-    _data->freq = _target_freq;
-    _data->cfactor = 2 * cosf( 2 * M_PI * _target_freq / _sr );
-
-    return ES_OK;
-}
-
-EXIT_STATUS bbd_goertzel( GOERTZEL_DATA* _data, const float _sample, const BOOL _update_xk )
-{
-    if ( !_data )
-    {
-        fprintf( stderr, "NULL Goertzel data\n" );
-
-        return ES_BADARG;
-    }
-
-    _data->sn2 = _data->sn1;
-    _data->sn1 = _data->sn;
-
-    _data->sn = _data->cfactor * _data->sn1 -
-                _data->sn2 +
-                _sample;
-
-    _data->xk = SQR(_data->sn1) -
-                _data->cfactor * _data->sn1 * _data->sn2 +
-                SQR(_data->sn2);
-
-    if ( _update_xk )
-    {
-    }
-
-    return ES_OK;
-}
-
-EXIT_STATUS bbd_save_start_stop( GOERTZEL_DATA* _data, const BOOL _start )
-{
-    if ( !_data )
-    {
-        fprintf( stderr, "NULL Goertzel data\n" );
-
-        return ES_BADARG;
-    }
-
-    if ( _start )
-    {
-        _data->xk_start = _data->xk;
-    }
-    else
-    {
-        _data->xk_stop = _data->xk;
-    }
-
-#ifdef _DEBUG
-    printf( "save %s for freq %f: %0.6f\n"
-            , ( _start == true ? "start" : "stop" )
-            , _data->freq
-            , ( _start == true ? _data->xk_start : _data->xk_stop )
-          );
-#endif
-
-    return ES_OK;
 }
 
 EXIT_STATUS bbd_detect_key( const GOERTZEL_DATA* _data, const int _chcount, const int _ch, char* _key )
@@ -598,83 +518,6 @@ EXIT_STATUS bbd_detect_key( const GOERTZEL_DATA* _data, const int _chcount, cons
             return ES_OK;
         }
     }
-
-    return ES_BAD;
-}
-
-EXIT_STATUS bbd_is_signal( WAVEFORM_DATA* _data )
-{
-    if ( !_data )
-    {
-        fprintf( stderr, "NULL waveform data\n" );
-
-        return ES_BADARG;
-    }
-
-/*FIXME: magic number*/
-    float trs = 0.01;
-
-    if (    ABS(_data->wf3) > trs
-         || ABS(_data->wf2) > trs
-         || ABS(_data->wf1) > trs
-         || ABS(_data->wf0) > trs
-       )
-    {
-        return ES_OK;
-    }
-
-    return ES_BAD;
-}
-
-EXIT_STATUS bbd_is_pause( WAVEFORM_DATA* _data )
-{
-    if ( !_data )
-    {
-        fprintf( stderr, "NULL waveform data\n" );
-
-        return ES_BADARG;
-    }
-
-    float max = MAX4(   ABS(_data->wf3)
-                      , ABS(_data->wf2)
-                      , ABS(_data->wf1)
-                      , ABS(_data->wf0)
-                    );
-
-/*FIXME: magic number*/
-    if ( max < 0.01 )
-    {
-#ifdef _DEBUG
-        printf( "possible pause: max = %0.6f\n"
-                , max
-              );
-#endif
-        return ES_OK;
-    }
-
-    return ES_BAD;
-}
-
-EXIT_STATUS bbd_goertzel_reset( GOERTZEL_DATA* _data )
-{
-    if ( !_data )
-    {
-        fprintf( stderr, "NULL Goertzel data\n" );
-
-        return ES_BADARG;
-    }
-
-    _data->sn = 0;
-    _data->sn1 = 0;
-    _data->sn2 = 0;
-
-    _data->xk = 0;
-
-#ifdef _DEBUG
-    printf( "reset Goertzel data @ freq %0.6f\n"
-            , _data->freq
-          );
-#endif
 
     return ES_BAD;
 }

@@ -16,22 +16,43 @@
  *along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef DECODER_H
-#define DECODER_H
+#ifndef GOERTZEL_H
+#define GOERTZEL_H
 
 #include    "common.h"
-#include    "goertzel.h"
-#include    "dtmf.h"
 
-typedef enum DECODER_STATE_ENUM
+typedef struct GOERTZEL_DATA_STRUCT
 {
-      DS_WAIT_FOR_SIGNAL
-    , DS_WAIT_FOR_SIGNAL_END
-    , DS_WAIT_FOR_PAUSE
-    , DS_WAIT_FOR_PAUSE_END
-} DECODER_STATE;
+    float freq;
+    float cfactor;
 
-EXIT_STATUS bb_decode( const char* );
-EXIT_STATUS bbd_detect_key( const GOERTZEL_DATA*, const int, const int, char* );
+    float sn1;
+    float sn2;
+    float sn;
+
+    float xk0;
+    float xk;
+
+    float xk_start;
+    float xk_stop;
+} GOERTZEL_DATA;
+
+typedef struct VAWEFORM_DATA_STRUCT
+{
+    float wf0;
+    float wf1;
+    float wf2;
+    float wf3;
+
+    float tm;
+    float peak;
+} WAVEFORM_DATA;
+
+EXIT_STATUS bbg_initialize_goertzel_data( GOERTZEL_DATA*, const float, const float);
+EXIT_STATUS bbg_goertzel( GOERTZEL_DATA*, const float, const BOOL );
+EXIT_STATUS bbg_is_signal( WAVEFORM_DATA* );
+EXIT_STATUS bbg_is_pause( WAVEFORM_DATA* );
+EXIT_STATUS bbg_save_start_stop( GOERTZEL_DATA*, const BOOL );
+EXIT_STATUS bbg_goertzel_reset( GOERTZEL_DATA* );
 
 #endif

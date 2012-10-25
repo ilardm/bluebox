@@ -16,22 +16,23 @@
  *along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef DECODER_H
-#define DECODER_H
+#ifndef ANI_DECODER_H
+#define ANI_DECODER_H
 
 #include    "common.h"
+#include    "ani.h"
 #include    "goertzel.h"
-#include    "dtmf.h"
 
-typedef enum DECODER_STATE_ENUM
+typedef enum ANI_DECODER_STATE_ENUM
 {
-      DS_WAIT_FOR_SIGNAL
-    , DS_WAIT_FOR_SIGNAL_END
-    , DS_WAIT_FOR_PAUSE
-    , DS_WAIT_FOR_PAUSE_END
-} DECODER_STATE;
+      ADS_WAIT_FOR_SIGNAL
+    , ADS_WAIT_FOR_PEAK
+    , ADS_PEAK_SYNC
+    , ADS_WAIT_FOR_REQUEST_END
+    , ADS_WAIT_FOR_ANI_END
+} ANI_DECODER_STATE;
 
-EXIT_STATUS bb_decode( const char* );
-EXIT_STATUS bbd_detect_key( const GOERTZEL_DATA*, const int, const int, char* );
+EXIT_STATUS bb_ani_decode( const char* );
+EXIT_STATUS bb_ani_detect_key( const GOERTZEL_DATA*, const int, const int, char* );
 
 #endif
