@@ -1,9 +1,9 @@
 # BlueBox
 Yet another tool for encoding/decoding [DTMF][wiki-dtmf] signals.
 
-Also able to encode Russian ANI reply. Decoding (in current implementation)
+Also able to encode [Russian ANI][rus-ani-lnk] reply. Decoding (in current implementation)
 is possible(at least most correct) only via analyzing by hands
-debug energy plot (*requires gnuplot*).
+debug energy plot ( *requires gnuplot* ).
 
 # Requirements
 Requires [lib-sndfile][libsndfile-lnk]
@@ -29,4 +29,5 @@ Licensed under the terms of GNU GPLv3. Copy of the license may be found
 in LICENSE file.
 
 [wiki-dtmf]: http://en.wikipedia.org/wiki/Dtmf
-[libsdndfile-lnk]: http://www.mega-nerd.com/libsndfile/
+[libsndfile-lnk]: http://www.mega-nerd.com/libsndfile/
+[rus-ani-lnk]: http://ru.wikipedia.org/wiki/%D0%90%D0%9E%D0%9D
