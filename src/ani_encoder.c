@@ -43,12 +43,12 @@ EXIT_STATUS bb_ani_encode( const char* _number, const char* _outfname )
     int i = 0;
     for ( i = 0; i < strlen( _number ); i++ )
     {
-        if ( !index( ANI_NUMBERS, _number[i] ) )
+        if ( !index( ANI_ALLOWED_NUMBERS, _number[i] ) )
         {
             fprintf( stderr, "incorrect character '%c'\n"
                      "allowed characters are '%s'\n"
                      , _number[i]
-                     , ANI_NUMBERS
+                     , ANI_ALLOWED_NUMBERS
                    );
             return ES_BADARG;
         }

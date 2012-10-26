@@ -32,6 +32,7 @@
  */
 
 static const char* ANI_NUMBERS = "S1234567890R";
+static const char* ANI_ALLOWED_NUMBERS = "1234567890";
 
 enum ANI_CONSTANTS {
       ANI_REQUEST_FREQ  = 500   /*Hz*/
