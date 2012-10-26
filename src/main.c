@@ -22,6 +22,7 @@
 #include    "encoder.h"
 #include    "decoder.h"
 #include    "ani_decoder.h"
+#include    "ani_encoder.h"
 
 int main( int argc, char** argv )
 {
@@ -78,6 +79,22 @@ int main( int argc, char** argv )
 #endif /* =================================================================== */
 
         return bb_ani_decode( argv[2] );
+    }
+    else if ( strncmp( argv[1], "-ea", 3 ) == 0 )
+    {
+        /*ANI encoder requires string to encode and output file*/
+        if ( argc < 3 )
+        {
+            display_usage(   argv[0]
+                           , "ANI encoder requires string to encode and output file"
+                           );
+            return ES_BADARG;
+        }
+#ifdef _DEBUG /* ============================================================ */
+        printf( "run ANI encoder\n" );
+#endif /* =================================================================== */
+
+        return bb_ani_encode( argv[2], argv[3] );
     }
     else if ( strncmp( argv[1], "-d", 2 ) == 0 )
     {
@@ -136,8 +153,9 @@ void display_usage( const char* _argv, const char* _errmsg )
     printf( "\nUsage: "
             "run %s with following options:\n"
             "\t-d <infile> - decode DTMF in <infile>\n"
-            "\t-e <number> <outfile> - encode <number> to <outfile>\n"
+            "\t-e <number> <outfile> - encode <number> to <outfile> (DTMF)\n"
             "\t-da <infile> - decode ANI in <infile>\n"
+            "\t-ea <number> <outfile> - encode <number> to <outfile> (ANI)\n"
             , ( _argv ? _argv : "program" )
             );
 }
