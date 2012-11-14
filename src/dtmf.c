@@ -18,6 +18,36 @@
 
 #include    "dtmf.h"
 
+/*constants*/
+const char* DTMF_NUMBERS = "123A456B789C*0#D";
+
+const DTMF_KEY_FREQ DTMF_KEYPAD_FREQ[ DTMF_KP_COUNT ] = {
+      { DTMF_X1_FREQ, DTMF_Y1_FREQ }
+    , { DTMF_X2_FREQ, DTMF_Y1_FREQ }
+    , { DTMF_X3_FREQ, DTMF_Y1_FREQ }
+    , { DTMF_X4_FREQ, DTMF_Y1_FREQ }
+
+    , { DTMF_X1_FREQ, DTMF_Y2_FREQ }
+    , { DTMF_X2_FREQ, DTMF_Y2_FREQ }
+    , { DTMF_X3_FREQ, DTMF_Y2_FREQ }
+    , { DTMF_X4_FREQ, DTMF_Y2_FREQ }
+
+    , { DTMF_X1_FREQ, DTMF_Y3_FREQ }
+    , { DTMF_X2_FREQ, DTMF_Y3_FREQ }
+    , { DTMF_X3_FREQ, DTMF_Y3_FREQ }
+    , { DTMF_X4_FREQ, DTMF_Y3_FREQ }
+
+    , { DTMF_X1_FREQ, DTMF_Y4_FREQ }
+    , { DTMF_X2_FREQ, DTMF_Y4_FREQ }
+    , { DTMF_X3_FREQ, DTMF_Y4_FREQ }
+    , { DTMF_X4_FREQ, DTMF_Y4_FREQ }
+    , { 0, 0 }
+};
+
+DTMF_KEY_SIGNAL DTMF_KEY_SIGNALS[ DTMF_KP_COUNT ] = { { 0 } };
+
+/*/constants*/
+
 DTMF_KEYPAD dtmf_c2kp( const char _c )
 {
     DTMF_KEYPAD ret = DTMF_KP_COUNT;
@@ -123,7 +153,8 @@ EXIT_STATUS dtmf_kf2kp( const DTMF_KEY_FREQ* _kf, DTMF_KEYPAD* _kp )
         return ES_BADARG;
     }
 
-    for ( DTMF_KEYPAD kp = DTMF_KP_1; dtmf_is_keypad_value( kp ) == true; kp++ )
+    DTMF_KEYPAD kp;
+    for ( kp = DTMF_KP_1; dtmf_is_keypad_value( kp ) == true; kp++ )
     {
         if (    DTMF_KEYPAD_FREQ[ kp ].hi == _kf->hi
              && DTMF_KEYPAD_FREQ[ kp ].lo == _kf->lo

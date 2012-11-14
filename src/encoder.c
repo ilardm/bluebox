@@ -19,6 +19,10 @@
 #include    "encoder.h"
 #include    "dtmf.h"
 
+extern const char* DTMF_NUMBERS;
+extern DTMF_KEY_SIGNAL* DTMF_KEY_SIGNALS;
+extern const DTMF_KEY_FREQ* DTMF_KEYPAD_FREQ;
+
 EXIT_STATUS bb_encode( const char* _number, const char* _outfname )
 {
     if (    !_number

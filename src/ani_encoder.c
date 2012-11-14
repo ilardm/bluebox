@@ -18,6 +18,10 @@
 
 #include    "ani_encoder.h"
 
+extern const char* ANI_ALLOWED_NUMBERS;
+extern const ANI_KEY_FREQ* ANI_KEYPAD_FREQ;
+extern ANI_KEY_SIGNAL* ANI_KEY_SIGNALS;
+
 EXIT_STATUS bb_ani_encode( const char* _number, const char* _outfname )
 {
     if (    !_number

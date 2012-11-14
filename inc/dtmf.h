@@ -21,9 +21,6 @@
 
 #include    "common.h"
 
-/*static const char* DTMF_NUMBERS = "0123456789*#ABCD";*/
-static const char* DTMF_NUMBERS = "123A456B789C*0#D";
-
 // should be defines/enum/etc, not static const <type>
 // http://stackoverflow.com/a/3025106
 enum DTMF_CONSTANTS {
@@ -83,35 +80,10 @@ EXIT_STATUS dtmf_kp2c( const DTMF_KEYPAD, char* );
 BOOL dtmf_is_keypad_value( const DTMF_KEYPAD );
 EXIT_STATUS dtmf_kf2kp( const DTMF_KEY_FREQ*, DTMF_KEYPAD* );
 
-static const DTMF_KEY_FREQ DTMF_KEYPAD_FREQ[ DTMF_KP_COUNT ] = {
-      { DTMF_X1_FREQ, DTMF_Y1_FREQ }
-    , { DTMF_X2_FREQ, DTMF_Y1_FREQ }
-    , { DTMF_X3_FREQ, DTMF_Y1_FREQ }
-    , { DTMF_X4_FREQ, DTMF_Y1_FREQ }
-
-    , { DTMF_X1_FREQ, DTMF_Y2_FREQ }
-    , { DTMF_X2_FREQ, DTMF_Y2_FREQ }
-    , { DTMF_X3_FREQ, DTMF_Y2_FREQ }
-    , { DTMF_X4_FREQ, DTMF_Y2_FREQ }
-
-    , { DTMF_X1_FREQ, DTMF_Y3_FREQ }
-    , { DTMF_X2_FREQ, DTMF_Y3_FREQ }
-    , { DTMF_X3_FREQ, DTMF_Y3_FREQ }
-    , { DTMF_X4_FREQ, DTMF_Y3_FREQ }
-
-    , { DTMF_X1_FREQ, DTMF_Y4_FREQ }
-    , { DTMF_X2_FREQ, DTMF_Y4_FREQ }
-    , { DTMF_X3_FREQ, DTMF_Y4_FREQ }
-    , { DTMF_X4_FREQ, DTMF_Y4_FREQ }
-    , { 0, 0 }
-};
-
 typedef struct DTMF_KEY_SIGNAL_STRUCT {
     BOOL    filled;
     void*   data;
     size_t  datasz;
 } DTMF_KEY_SIGNAL;
-
-static DTMF_KEY_SIGNAL DTMF_KEY_SIGNALS[ DTMF_KP_COUNT ] = { { 0 } };
 
 #endif

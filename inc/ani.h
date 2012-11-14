@@ -31,9 +31,6 @@
  *  1700 |          S    R
  */
 
-static const char* ANI_NUMBERS = "S1234567890R";
-static const char* ANI_ALLOWED_NUMBERS = "1234567890";
-
 enum ANI_CONSTANTS {
       ANI_REQUEST_FREQ  = 500   /*Hz*/
     , ANI_REQUEST_DUR   = 100   /*ms*/
@@ -77,23 +74,6 @@ typedef enum ANI_KEYPAD_ENUM {
     , ANI_KP_COUNT
 } ANI_KEYPAD;
 
-static const ANI_KEY_FREQ ANI_KEYPAD_FREQ[ ANI_KP_COUNT ] = {
-      { ANI_FREQ_6, ANI_FREQ_3 }    /* S */
-
-    , { ANI_FREQ_2, ANI_FREQ_1 }    /* 1 */
-    , { ANI_FREQ_3, ANI_FREQ_1 }
-    , { ANI_FREQ_3, ANI_FREQ_2 }
-    , { ANI_FREQ_4, ANI_FREQ_1 }
-    , { ANI_FREQ_4, ANI_FREQ_2 }
-    , { ANI_FREQ_4, ANI_FREQ_3 }
-    , { ANI_FREQ_5, ANI_FREQ_1 }
-    , { ANI_FREQ_5, ANI_FREQ_2 }
-    , { ANI_FREQ_5, ANI_FREQ_3 }
-    , { ANI_FREQ_5, ANI_FREQ_4 }    /* 0 */
-
-    , { ANI_FREQ_6, ANI_FREQ_4 }    /* R */
-};
-
 ANI_KEYPAD ani_c2kp( const char );
 EXIT_STATUS ani_kp2c( const ANI_KEYPAD, char* );
 BOOL ani_is_keypad_value( const ANI_KEYPAD );
@@ -104,7 +84,5 @@ typedef struct ANI_KEY_SIGNAL_STRUCT {
     void*   data;
     size_t  datasz;
 } ANI_KEY_SIGNAL;
-
-static ANI_KEY_SIGNAL ANI_KEY_SIGNALS[ ANI_KP_COUNT ] = { { 0 } };
 
 #endif

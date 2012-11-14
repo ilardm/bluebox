@@ -18,6 +18,31 @@
 
 #include    "ani.h"
 
+/*constants*/
+
+const char* ANI_NUMBERS = "S1234567890R";
+const char* ANI_ALLOWED_NUMBERS = "1234567890";
+
+const ANI_KEY_FREQ ANI_KEYPAD_FREQ[ ANI_KP_COUNT ] = {
+      { ANI_FREQ_6, ANI_FREQ_3 }    /* S */
+
+    , { ANI_FREQ_2, ANI_FREQ_1 }    /* 1 */
+    , { ANI_FREQ_3, ANI_FREQ_1 }
+    , { ANI_FREQ_3, ANI_FREQ_2 }
+    , { ANI_FREQ_4, ANI_FREQ_1 }
+    , { ANI_FREQ_4, ANI_FREQ_2 }
+    , { ANI_FREQ_4, ANI_FREQ_3 }
+    , { ANI_FREQ_5, ANI_FREQ_1 }
+    , { ANI_FREQ_5, ANI_FREQ_2 }
+    , { ANI_FREQ_5, ANI_FREQ_3 }
+    , { ANI_FREQ_5, ANI_FREQ_4 }    /* 0 */
+
+    , { ANI_FREQ_6, ANI_FREQ_4 }    /* R */
+};
+
+ANI_KEY_SIGNAL ANI_KEY_SIGNALS[ ANI_KP_COUNT ] = { { 0 } };
+/*/constants*/
+
 ANI_KEYPAD ani_c2kp( const char _c )
 {
     ANI_KEYPAD ret = ANI_KP_COUNT;
@@ -111,7 +136,8 @@ EXIT_STATUS ani_kf2kp( const ANI_KEY_FREQ* _kf, ANI_KEYPAD* _kp )
         return ES_BADARG;
     }
 
-    for ( ANI_KEYPAD kp = ANI_KP_S; ani_is_keypad_value( kp ) == true; kp++ )
+    ANI_KEYPAD kp;
+    for ( kp = ANI_KP_S; ani_is_keypad_value( kp ) == true; kp++ )
     {
         if (    ANI_KEYPAD_FREQ[ kp ].hi == _kf->hi
              && ANI_KEYPAD_FREQ[ kp ].lo == _kf->lo
