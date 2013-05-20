@@ -1,6 +1,6 @@
 /*
  *Yet another DTMF signals encoder/decoder.
- *Copyright (C) 2012  Ilya Arefiev <arefiev.id@gmail.com>
+ *Copyright (C) 2013  Ilya Arefiev <arefiev.id@gmail.com>
  *
  *This program is free software: you can redistribute it and/or modify
  *it under the terms of the GNU General Public License as published by
@@ -17,10 +17,6 @@
  */
 
 #include    "ani_encoder.h"
-
-extern const char* ANI_ALLOWED_NUMBERS;
-extern const ANI_KEY_FREQ* ANI_KEYPAD_FREQ;
-extern ANI_KEY_SIGNAL* ANI_KEY_SIGNALS;
 
 EXIT_STATUS bb_ani_encode( const char* _number, const char* _outfname )
 {

@@ -1,6 +1,6 @@
 /*
  *Yet another DTMF signals encoder/decoder.
- *Copyright (C) 2012  Ilya Arefiev <arefiev.id@gmail.com>
+ *Copyright (C) 2013  Ilya Arefiev <arefiev.id@gmail.com>
  *
  *This program is free software: you can redistribute it and/or modify
  *it under the terms of the GNU General Public License as published by
@@ -162,7 +162,7 @@ void display_usage( const char* _argv, const char* _errmsg )
 
 void display_license()
 {
-    printf( "bluebox Copyright (C) 2012 Ilya Arefiev <arefiev.id@gmail.com>\n"
+    printf( "bluebox Copyright (C) 2013 Ilya Arefiev <arefiev.id@gmail.com>\n"
             "This program comes with ABSOLUTELY NO WARRANTY.\n"
             "This is free software, and you are welcome to redistribute it\n"
             "under certain conditions.\n"

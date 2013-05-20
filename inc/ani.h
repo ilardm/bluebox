@@ -1,6 +1,6 @@
 /*
  *Yet another DTMF signals encoder/decoder.
- *Copyright (C) 2012  Ilya Arefiev <arefiev.id@gmail.com>
+ *Copyright (C) 2013  Ilya Arefiev <arefiev.id@gmail.com>
  *
  *This program is free software: you can redistribute it and/or modify
  *it under the terms of the GNU General Public License as published by
@@ -84,5 +84,10 @@ typedef struct ANI_KEY_SIGNAL_STRUCT {
     void*   data;
     size_t  datasz;
 } ANI_KEY_SIGNAL;
+
+extern const char* ANI_ALLOWED_NUMBERS;
+extern const char* ANI_NUMBERS;
+extern const ANI_KEY_FREQ ANI_KEYPAD_FREQ[ ANI_KP_COUNT ];
+extern ANI_KEY_SIGNAL ANI_KEY_SIGNALS[ ANI_KP_COUNT ];
 
 #endif

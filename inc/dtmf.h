@@ -1,6 +1,6 @@
 /*
  *Yet another DTMF signals encoder/decoder.
- *Copyright (C) 2012  Ilya Arefiev <arefiev.id@gmail.com>
+ *Copyright (C) 2013  Ilya Arefiev <arefiev.id@gmail.com>
  *
  *This program is free software: you can redistribute it and/or modify
  *it under the terms of the GNU General Public License as published by
@@ -85,5 +85,9 @@ typedef struct DTMF_KEY_SIGNAL_STRUCT {
     void*   data;
     size_t  datasz;
 } DTMF_KEY_SIGNAL;
+
+extern const char* DTMF_NUMBERS;
+extern const DTMF_KEY_FREQ DTMF_KEYPAD_FREQ[ DTMF_KP_COUNT ];
+extern DTMF_KEY_SIGNAL DTMF_KEY_SIGNALS[ DTMF_KP_COUNT ];
 
 #endif

@@ -1,6 +1,6 @@
 /*
  *Yet another DTMF signals encoder/decoder.
- *Copyright (C) 2012  Ilya Arefiev <arefiev.id@gmail.com>
+ *Copyright (C) 2013  Ilya Arefiev <arefiev.id@gmail.com>
  *
  *This program is free software: you can redistribute it and/or modify
  *it under the terms of the GNU General Public License as published by
@@ -18,10 +18,6 @@
 
 #include    "encoder.h"
 #include    "dtmf.h"
-
-extern const char* DTMF_NUMBERS;
-extern DTMF_KEY_SIGNAL* DTMF_KEY_SIGNALS;
-extern const DTMF_KEY_FREQ* DTMF_KEYPAD_FREQ;
 
 EXIT_STATUS bb_encode( const char* _number, const char* _outfname )
 {
